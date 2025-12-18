@@ -12,11 +12,12 @@ import { ToastService } from '../../../services/toast.service';
 import { ToastComponent } from '../../../components/toast/toast.component';
 import { ManagePagesComponent } from '../manage-pages/manage-pages.component';
 import { ManageNavigationComponent } from '../manage-navigation/manage-navigation.component';
+import { Header } from '../../../layout/header/header';
 
 @Component({
     selector: 'app-admin-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, ManagePagesComponent, ManageNavigationComponent],
+    imports: [CommonModule, FormsModule, ManagePagesComponent, ManageNavigationComponent, Header],
     templateUrl: './admin-dashboard.html',
     styleUrls: ['./admin-dashboard.css', './modal.css']
 })

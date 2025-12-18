@@ -1,11 +1,17 @@
 <div class="admin-dashboard">
-  <!-- Header -->
-  <header class="dashboard-header">
+  <!-- Header
+  <app-header> </app-header> -->
+ 
+
+  <header class="dashboard-header text-white bg-primary">
     <div class="header-content">
-      <h1>Admin Dashboard</h1>
+      <div class="d-flex align-items-center gap-3"> 
+        <img src="assets/images/logo.jpeg" alt="Logo" class="college-logo img-fluid p-3">
+        <h5>Admin Dashboard</h5>
+      </div>
       <div class="header-actions">
-        <span class="admin-name">{{ currentAdmin?.fullName }}</span>
-        <button class="logout-btn" (click)="logout()">Logout</button>
+        <span class="admin-name px-3">{{ currentAdmin?.fullName }}</span>
+        <button class=" btn btn-danger" (click)="logout()">Logout</button>
       </div>
     </div>
   </header>
