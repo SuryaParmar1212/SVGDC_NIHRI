@@ -8,6 +8,7 @@ import { AdminDashboard } from './pages/admin/admin-dashboard/admin-dashboard';
 import { AllNewsComponent } from './pages/all-news/all-news.component';
 import { AllNoticesComponent } from './pages/all-notices/all-notices.component';
 import { NSSComponent } from './pages/nss/nss.component';
+import { PrincipalMessageComponent } from './pages/principal-message/principal-message';
 
 export const routes: Routes = [
     { path: '', component: Home },
@@ -21,6 +22,7 @@ export const routes: Routes = [
     { path: 'gallery', loadComponent: () => import('./pages/all-gallery/all-gallery.component').then(m => m.AllGalleryComponent) },
     { path: 'nss', component: NSSComponent },
     { path: 'ncc', component: NSSComponent }, // Using same component for NCC
+    { path: 'principal-message', component: PrincipalMessageComponent },
     { path: ':slug', loadComponent: () => import('./pages/dynamic-page/dynamic-page.component').then(m => m.DynamicPageComponent) },
     { path: '**', redirectTo: '' }
 ];

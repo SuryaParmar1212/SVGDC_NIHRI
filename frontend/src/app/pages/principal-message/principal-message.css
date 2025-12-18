@@ -1,0 +1,54 @@
+.principal-message-page {
+    background-color: #f8f9fa;
+    min-height: 80vh;
+}
+
+.principal-sidebar {
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.principal-full-img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border: 5px solid white;
+    transition: transform 0.3s ease;
+}
+
+.principal-full-img:hover {
+    transform: scale(1.05);
+}
+
+.divider {
+    width: 50px;
+    height: 3px;
+    background-color: var(--primary-color, #007bff);
+}
+
+.header-line {
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color, #007bff), #ffc107);
+    border-radius: 2px;
+}
+
+.message-content p {
+    line-height: 1.8;
+    color: #444;
+    text-align: justify;
+}
+
+.closing-section {
+    font-style: italic;
+}
+
+@media (max-width: 991.98px) {
+    .principal-sidebar {
+        border-right: none;
+        border-bottom: 1px solid #eee;
+    }
+}

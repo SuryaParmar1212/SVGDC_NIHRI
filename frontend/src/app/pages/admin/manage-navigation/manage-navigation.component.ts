@@ -23,32 +23,7 @@ import { ToastService } from '../../../services/toast.service';
               </button>
           </div>
 
-          <!-- Live Preview Card -->
-          <div class="card mb-5 shadow-sm border-0 menu-builder-preview">
-              <div class="card-header bg-white border-bottom p-4">
-                  <div class="d-flex align-items-center justify-content-between">
-                     <h6 class="text-uppercase small fw-bold text-primary mb-0">Live Header Preview</h6>
-                     <span class="badge bg-light text-dark rounded-pill border">Auto-synced</span>
-                  </div>
-              </div>
-              <div class="card-body p-0">
-                  <div class="modern-preview-nav px-4 py-3">
-                      <div class="container d-flex align-items-center gap-5">
-                          <div class="preview-logo">
-                             <img src="assets/images/logo.png" height="40" class="me-2 opacity-50" onerror="this.style.display='none'">
-                             <span class="fw-bold fs-5">COLLEGE PORTAL</span>
-                          </div>
-                          <div class="d-flex gap-4">
-                              <div class="preview-menu-item" *ngFor="let item of navigationTree" [class.has-children]="item.children?.length">
-                                  <i *ngIf="item.icon" [class]="item.icon" class="me-1 opacity-75"></i>
-                                  {{ item.title }}
-                                  <i *ngIf="item.children?.length" class="bi bi-chevron-down ms-1 extra-small opacity-50"></i>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
+      
 
           <div class="row g-4">
               <!-- Tree View -->
@@ -150,6 +125,32 @@ import { ToastService } from '../../../services/toast.service';
                       <div class="icon-circle-lg mb-4 mx-auto"><i class="bi bi-pencil-fill"></i></div>
                       <h5 class="fw-bold text-dark">Property Editor</h5>
                       <p class="text-muted small">Select an item from the architecture tree or add a new one to begin editing its properties.</p>
+                  </div>
+              </div>
+          </div>
+              <!-- Live Preview Card -->
+          <div class="card mt-3 shadow-sm border-0 menu-builder-preview">
+              <div class="card-header bg-white border-bottom p-4">
+                  <div class="d-flex align-items-center justify-content-between">
+                     <h6 class="text-uppercase small fw-bold text-primary mb-0">Live Header Preview</h6>
+                     <span class="badge bg-light text-dark rounded-pill border">Auto-synced</span>
+                  </div>
+              </div>
+              <div class="card-body p-0">
+                  <div class="modern-preview-nav px-4 py-3">
+                      <div class="container d-flex align-items-center gap-5">
+                          <div class="preview-logo">
+                             <img src="assets/images/logo.png" height="40" class="me-2 opacity-50" onerror="this.style.display='none'">
+                             <span class="fw-bold fs-5">COLLEGE PORTAL</span>
+                          </div>
+                          <div class="d-flex gap-4">
+                              <div class="preview-menu-item" *ngFor="let item of navigationTree" [class.has-children]="item.children?.length">
+                                  <i *ngIf="item.icon" [class]="item.icon" class="me-1 opacity-75"></i>
+                                  {{ item.title }}
+                                  <i *ngIf="item.children?.length" class="bi bi-chevron-down ms-1 extra-small opacity-50"></i>
+                              </div>
+                          </div>
+                      </div>
                   </div>
               </div>
           </div>

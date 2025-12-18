@@ -5,7 +5,7 @@
       <div class="col-md-6">
         <div class="d-flex gap-3">
           <span><i class="bi bi-telephone"></i> 01907 233 674</span>
-          <span><i class="bi bi-envelope"></i> info@university.edu</span>
+          <span><i class="bi bi-envelope"></i> gcnihri@gmail.com</span>
         </div>
       </div>
       <div class="col-md-6 text-end">
@@ -80,10 +80,10 @@
 
 <ng-template #menuNode let-item let-isRoot="isRoot">
   <!-- Top Level Item -->
-  <li *ngIf="isRoot" class="nav-item" [class.dropdown]="item.children && item.children.length > 0">
+  <li *ngIf="isRoot" class="nav-item" [class.dropdown]="item.children && item.children.length > 0" >
     <a class="nav-link" [class.dropdown-toggle]="item.children && item.children.length > 0" [routerLink]="item.link"
       routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" [id]="'nav-' + item.id">
-      <i *ngIf="item.icon" [class]="item.icon" class="me-1"></i> {{ item.title }}
+      <i *ngIf="item.icon" [class]="item.icon" class="me-1" style="font-size: large;"></i> {{ item.title }}
     </a>
 
     <!-- Render Dropdown if it has children -->
@@ -92,7 +92,7 @@
         <li class="dropdown-submenu-container">
           <a class="dropdown-item" [routerLink]="child.link" routerLinkActive="active"
             [class.has-children]="child.children?.length">
-            <span class="d-flex align-items-center">
+            <span class="d-flex align-items-center " style="font-size: large;">
               <i *ngIf="child.icon" [class]="child.icon" class="me-2 opacity-50"></i>
               {{ child.title }}
             </span>
