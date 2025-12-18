@@ -1,0 +1,335 @@
+/* Global Styles for University Website */
+
+:root {
+  --primary-color: #1e3a8a;
+  --secondary-color: #dc2626;
+  --accent-color: #f59e0b;
+  --text-dark: #1f2937;
+  --text-light: #6b7280;
+  --bg-light: #f9fafb;
+  --border-color: #e5e7eb;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+/* Top Bar Styles */
+.top-bar {
+  background: linear-gradient(135deg, var(--primary-color), #2563eb);
+  color: white;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.top-bar a {
+  color: white;
+  text-decoration: none;
+  transition: opacity 0.3s;
+}
+
+.top-bar a:hover {
+  opacity: 0.8;
+}
+
+/* Header Styles */
+.main-header {
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.college-logo {
+  max-height: 80px;
+}
+
+.college-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.college-tagline {
+  font-size: 14px;
+  color: var(--text-light);
+  margin: 0;
+}
+
+/* Global Header Override - Remove if conflicts with component styles */
+/* .main-header { background: white; ... } */
+
+/* Removed duplicate navbar styles to allow Header component styles to take precedence */
+
+/* Announcement Ticker */
+.announcement-ticker {
+  background: var(--secondary-color);
+  color: white;
+  padding: 10px 0;
+  overflow: hidden;
+}
+
+.announcement-ticker .container {
+  overflow: hidden;
+}
+
+.announcement-ticker .d-flex {
+  overflow: hidden;
+}
+
+.ticker-content {
+  display: inline-block;
+  white-space: nowrap;
+  animation: ticker 30s linear infinite;
+  padding-left: 100%;
+}
+
+.ticker-content:hover {
+  animation-play-state: paused;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Hero Slider */
+.hero-slider {
+  position: relative;
+  height: 500px;
+  overflow: hidden;
+}
+
+.hero-slider img {
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+}
+
+/* Quick Links */
+.quick-links {
+  padding: 40px 0;
+  background: var(--bg-light);
+}
+
+.quick-link-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid var(--border-color);
+  height: 100%;
+}
+
+.quick-link-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.quick-link-icon {
+  font-size: 48px;
+  color: var(--primary-color);
+  margin-bottom: 15px;
+}
+
+.quick-link-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+/* Section Styles */
+.section {
+  padding: 60px 0;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 30px;
+  position: relative;
+  padding-bottom: 15px;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--accent-color);
+}
+
+/* Card Styles */
+.card {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  transition: transform 0.3s, box-shadow 0.3s;
+  height: 100%;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top {
+  border-radius: 8px 8px 0 0;
+  height: 200px;
+  object-fit: cover;
+}
+
+/* News & Notice Board */
+.news-item,
+.notice-item {
+  padding: 15px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.3s;
+}
+
+.news-item:hover,
+.notice-item:hover {
+  background: var(--bg-light);
+}
+
+.news-date,
+.notice-date {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.news-title,
+.notice-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 5px 0;
+}
+
+/* Department Cards */
+.department-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+
+.department-card:hover {
+  transform: translateY(-5px);
+}
+
+.department-icon {
+  font-size: 64px;
+  color: var(--primary-color);
+  padding: 30px;
+  background: var(--bg-light);
+}
+
+/* Footer Styles */
+.footer {
+  background: #1f2937;
+  color: white;
+  padding: 40px 0 20px;
+}
+
+.footer h5 {
+  color: var(--accent-color);
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.footer a {
+  color: #d1d5db;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer a:hover {
+  color: white;
+}
+
+.footer-bottom {
+  background: #111827;
+  padding: 15px 0;
+  margin-top: 30px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--primary-color);
+  border: none;
+  padding: 10px 25px;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-primary:hover {
+  background: #1e40af;
+}
+
+.btn-secondary {
+  background: var(--secondary-color);
+  border: none;
+  padding: 10px 25px;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #b91c1c;
+}
+
+/* Utility Classes */
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.bg-primary {
+  background: var(--primary-color) !important;
+}
+
+.bg-light-gray {
+  background: var(--bg-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .college-name {
+    font-size: 18px;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
+
+  .hero-slider {
+    height: 300px;
+  }
+
+  .hero-slider img {
+    height: 300px;
+  }
+}

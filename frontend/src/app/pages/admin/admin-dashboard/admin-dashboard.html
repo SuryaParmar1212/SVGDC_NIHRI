@@ -1,0 +1,754 @@
+<div class="admin-dashboard">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1>Admin Dashboard</h1>
+      <div class="header-actions">
+        <span class="admin-name">{{ currentAdmin?.fullName }}</span>
+        <button class="logout-btn" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Messages -->
+  <div class="messages-container" *ngIf="successMessage || errorMessage">
+    <div *ngIf="successMessage" class="message success-message">
+      {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="message error-message">
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <div class="dashboard-main">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="nav-menu">
+        <button class="nav-btn" [class.active]="activeTab === 'welcome'" (click)="setActiveTab('welcome')">
+          <i class="bi bi-speedometer2 me-2"></i> Dashboard Overview
+        </button>
+        <button class="nav-btn" [class.active]="activeTab === 'news'" (click)="setActiveTab('news')">
+          <i class="bi bi-newspaper me-2"></i> News Management
+        </button>
+        <button class="nav-btn" [class.active]="activeTab === 'announcements'" (click)="setActiveTab('announcements')">
+          <i class="bi bi-megaphone me-2"></i> Notices Management
+        </button>
+        <button class="nav-btn" [class.active]="activeTab === 'gallery'" (click)="setActiveTab('gallery')">
+          <i class="bi bi-images me-2"></i> Gallery Management
+        </button>
+        <button class="nav-btn" [class.active]="activeTab === 'pages'" (click)="setActiveTab('pages')">
+          <i class="bi bi-file-earmark-richtext me-2"></i> Pages Management
+        </button>
+        <button class="nav-btn" [class.active]="activeTab === 'navigation'" (click)="setActiveTab('navigation')">
+          <i class="bi bi-list-nested me-2"></i> Menu Management
+        </button>
+        <button class="nav-btn" [class.active]="activeTab === 'carousel'" (click)="setActiveTab('carousel')">
+          <i class="bi bi-sliders me-2"></i> Carousel Management
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Content Area -->
+    <main class="content-area">
+      <!-- Welcome/Overview Tab -->
+      <div *ngIf="activeTab === 'welcome'" class="tab-content welcome-section">
+        <div class="welcome-card">
+          <div class="welcome-header">
+            <h2>Welcome back, {{ currentAdmin?.fullName || 'Administrator' }}!</h2>
+            <p>Manage your college website content, pages, and navigation from this central dashboard.</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card" (click)="setActiveTab('pages')">
+              <div class="stat-icon pages"><i class="bi bi-file-earmark-text"></i></div>
+              <div class="stat-info">
+                <h3>Pages</h3>
+                <p>Create & Restore Website Content</p>
+              </div>
+            </div>
+            <div class="stat-card" (click)="setActiveTab('navigation')">
+              <div class="stat-icon menu"><i class="bi bi-list-task"></i></div>
+              <div class="stat-info">
+                <h3>Navigation</h3>
+                <p>Structure Global Menus</p>
+              </div>
+            </div>
+            <div class="stat-card" (click)="setActiveTab('news')">
+              <div class="stat-icon news"><i class="bi bi-journal-text"></i></div>
+              <div class="stat-info">
+                <h3>Recent Updates</h3>
+                <p>Latest Campus News & Events</p>
+              </div>
+            </div>
+            <div class="stat-card" (click)="setActiveTab('announcements')">
+              <div class="stat-icon notices"><i class="bi bi-bell"></i></div>
+              <div class="stat-info">
+                <h3>Notices</h3>
+                <p>Manage Official Notifications</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="quick-view mt-4">
+            <h3>Quick Tips</h3>
+            <ul class="tips-list">
+              <li><i class="bi bi-lightbulb"></i> Use <strong>Pages Management</strong> to edit dynamic content using
+                our visual editor.</li>
+              <li><i class="bi bi-lightbulb"></i> Use <strong>Menu Management</strong> to arrange links and icons in the
+                top navigation.</li>
+              <li><i class="bi bi-lightbulb"></i> Changes made to Pages are saved instantly to the database when you
+                click Save.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- Pages Management Tab -->
+      <div *ngIf="activeTab === 'pages'" class="tab-content">
+        <app-manage-pages></app-manage-pages>
+      </div>
+
+      <!-- Navigation Management Tab -->
+      <div *ngIf="activeTab === 'navigation'" class="tab-content">
+        <app-manage-navigation></app-manage-navigation>
+      </div>
+
+      <!-- News Tab -->
+      <div *ngIf="activeTab === 'news'" class="tab-content">
+        <!-- Create News Form -->
+        <div class="create-section">
+          <h2>Create New News</h2>
+          <form (ngSubmit)="createNews()" #newsForm="ngForm" class="create-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Title *</label>
+                <input type="text" [(ngModel)]="newNews.title" name="newsTitle" required class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Category *</label>
+                <input type="text" [(ngModel)]="newNews.category" name="newsCategory" required class="form-control" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Content *</label>
+              <textarea [(ngModel)]="newNews.content" name="newsContent" rows="4" required
+                class="form-control"></textarea>
+            </div>
+
+            <!-- News Image Upload Section -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="d-block mb-2">Image Source:</label>
+                <div class="checkbox-group d-flex flex-column justify-content-center">
+                  <label>
+                    <input type="radio" name="newsUploadSource" value="url" [(ngModel)]="$any(newNews).uploadSource">
+                    Direct Link
+                  </label>
+                  <label>
+                    <input type="radio" name="newsUploadSource" value="file" [(ngModel)]="$any(newNews).uploadSource">
+                    Upload File
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" *ngIf="$any(newNews).uploadSource === 'url'">
+              <label>Image URL</label>
+              <input type="text" [(ngModel)]="newNews.imageUrl" name="newsImage" class="form-control" />
+            </div>
+
+            <div class="form-group" *ngIf="$any(newNews).uploadSource === 'file'">
+              <label>Select Image</label>
+              <input type="file" (change)="onFileSelected($event, 'news')" accept="image/*" class="form-control" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Author</label>
+                <input type="text" [(ngModel)]="newNews.author" name="newsAuthor" class="form-control" />
+              </div>
+            </div>
+
+            <!-- PDF Upload Section -->
+            <div class="form-group">
+              <label>PDF Attachment (Optional)</label>
+
+              <div class="upload-options mb-2">
+                <label class="radio-option">
+                  <input type="radio" [(ngModel)]="$any(newNews).pdfUploadSource" name="newsPdfSource" value="url" />
+                  <span>Enter URL</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" [(ngModel)]="$any(newNews).pdfUploadSource" name="newsPdfSource" value="file" />
+                  <span>Upload File</span>
+                </label>
+              </div>
+
+              <div *ngIf="$any(newNews).pdfUploadSource === 'url'">
+                <input type="text" [(ngModel)]="newNews.pdfUrl" name="newsPdfUrl" class="form-control"
+                  placeholder="Enter PDF URL (e.g., /assets/pdf/document.pdf)" />
+              </div>
+
+              <div *ngIf="$any(newNews).pdfUploadSource === 'file'">
+                <input type="file" (change)="onPdfSelected($event, 'news')" accept=".pdf" class="form-control" />
+                <small style="color: #6b7280; font-size: 0.875rem; display: block; margin-top: 0.5rem;">Upload a PDF
+                  file (max 10MB)</small>
+              </div>
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label>
+                <input type="checkbox" [(ngModel)]="newNews.isActive" name="newsActive" />
+                Active
+              </label>
+            </div>
+
+            <button type="submit" class="submit-btn" [disabled]="isLoading">
+              {{ isLoading ? 'Creating...' : 'Create News' }}
+            </button>
+          </form>
+        </div>
+
+        <!-- News List -->
+        <div class="list-section">
+          <h2>All News ({{ newsList.length }})</h2>
+
+          <div *ngIf="isNewsLoading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading...</p>
+          </div>
+
+          <div class="items-grid" *ngIf="!isNewsLoading">
+            <div *ngFor="let news of newsList" class="item-card">
+              <div *ngIf="editingNews?.id !== news.id" class="item-view">
+                <div class="item-header">
+                  <h3>{{ news.title }}</h3>
+                  <span class="badge" [class.active]="news.isActive">
+                    {{ news.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+                <!-- Show image preview if exists -->
+                <div *ngIf="news.imageUrl" class="item-preview mt-2">
+                  <img [src]="news.imageUrl" alt="Preview"
+                    style="max-height: 100px; max-width: 100%; object-fit: cover; border-radius: 4px;">
+                </div>
+
+                <p class="item-category">Category: {{ news.category }}</p>
+                <p class="item-content">{{ news.content }}</p>
+                <p class="item-meta">By {{ news.author }} on {{ news.publishedDate | date:'short' }}</p>
+                <div class="item-actions">
+                  <button class="edit-btn" (click)="startEditNews(news)">Edit</button>
+                  <button class="delete-btn" (click)="deleteNews(news.id!)">Delete</button>
+                </div>
+              </div>
+
+              <div *ngIf="editingNews?.id === news.id" class="item-edit">
+                <form (ngSubmit)="updateNews()">
+                  <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" [(ngModel)]="editingNews!.title" name="editTitle" required
+                      class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" [(ngModel)]="editingNews!.category" name="editCategory" required
+                      class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label>Content</label>
+                    <textarea [(ngModel)]="editingNews!.content" name="editContent" rows="3" required
+                      class="form-control"></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="text" [(ngModel)]="editingNews!.imageUrl" name="editImage" class="form-control" />
+                  </div>
+                  <div class="form-group checkbox-group">
+                    <label>
+                      <input type="checkbox" [(ngModel)]="editingNews!.isActive" name="editActive" />
+                      Active
+                    </label>
+                  </div>
+                  <div class="edit-actions">
+                    <button type="submit" class="save-btn">Save</button>
+                    <button type="button" class="cancel-btn" (click)="cancelEditNews()">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcements (Notices) Tab -->
+      <div *ngIf="activeTab === 'announcements'" class="tab-content">
+        <!-- Create Announcement Form -->
+        <div class="create-section">
+          <h2>Create New Notice</h2>
+          <form (ngSubmit)="createAnnouncement()" #announcementForm="ngForm" class="create-form">
+            <div class="form-group">
+              <label>Title *</label>
+              <input type="text" [(ngModel)]="newAnnouncement.title" name="announcementTitle" required
+                class="form-control" />
+            </div>
+
+            <div class="form-group">
+              <label>Content *</label>
+              <textarea [(ngModel)]="newAnnouncement.content" name="announcementContent" rows="4" required
+                class="form-control"></textarea>
+            </div>
+
+            <!-- Attachment Upload for Notices -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="d-block mb-2">Attachment (PDF/Image):</label>
+                <div class="checkbox-group d-flex flex-column justify-content-center">
+                  <label>
+                    <input type="radio" name="attSource" value="url"
+                      [(ngModel)]="$any(newAnnouncement).attachmentSource">
+                    Link
+                  </label>
+                  <label>
+                    <input type="radio" name="attSource" value="file"
+                      [(ngModel)]="$any(newAnnouncement).attachmentSource">
+                    Upload
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" *ngIf="$any(newAnnouncement).attachmentSource === 'url'">
+              <label>Attachment URL</label>
+              <input type="text" [(ngModel)]="newAnnouncement.attachmentUrl" name="announcementAttUrl"
+                class="form-control" />
+            </div>
+
+            <div class="form-group" *ngIf="$any(newAnnouncement).attachmentSource === 'file'">
+              <label>Select File</label>
+              <input type="file" (change)="onFileSelected($event, 'attachment')" accept="image/*,application/pdf"
+                class="form-control" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Priority (0-10)</label>
+                <input type="number" [(ngModel)]="newAnnouncement.priority" name="announcementPriority" min="0" max="10"
+                  class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Expiry Date</label>
+                <input type="datetime-local" [(ngModel)]="newAnnouncement.expiryDate" name="announcementExpiry"
+                  class="form-control" />
+              </div>
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label>
+                <input type="checkbox" [(ngModel)]="newAnnouncement.isActive" name="announcementActive" />
+                Active
+              </label>
+            </div>
+
+            <button type="submit" class="submit-btn" [disabled]="isLoading">
+              {{ isLoading ? 'Creating...' : 'Create Notice' }}
+            </button>
+          </form>
+        </div>
+
+        <!-- Announcements List -->
+        <div class="list-section">
+          <h2>All Notices ({{ announcementsList ? announcementsList.length : 0 }})</h2>
+
+          <div *ngIf="isAnnouncementsLoading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Loading...</p>
+          </div>
+
+          <div class="items-grid" *ngIf="!isAnnouncementsLoading && announcementsList">
+            <div *ngFor="let announcement of announcementsList" class="item-card">
+              <div *ngIf="editingAnnouncement?.id !== announcement.id" class="item-view">
+                <div class="item-header">
+                  <h3>{{ announcement.title }}</h3>
+                  <div class="badges">
+                    <span class="badge priority">Priority: {{ announcement.priority }}</span>
+                    <span class="badge" [class.active]="announcement.isActive">
+                      {{ announcement.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Attachment Link -->
+                <p *ngIf="announcement.attachmentUrl" class="mt-2">
+                  <a [href]="announcement.attachmentUrl" target="_blank" class="text-primary">
+                    <i class="bi bi-paperclip"></i> View Attachment
+                  </a>
+                </p>
+
+                <p class="item-content">{{ announcement.content }}</p>
+                <p class="item-meta">
+                  By {{ announcement.createdBy }} on {{ announcement.createdDate | date:'short' }}
+                  <span *ngIf="announcement.expiryDate"> | Expires: {{ announcement.expiryDate | date:'short' }}</span>
+                </p>
+                <div class="item-actions">
+                  <button class="edit-btn" (click)="startEditAnnouncement(announcement)">Edit</button>
+                  <button class="delete-btn" (click)="deleteAnnouncement(announcement.id!)">Delete</button>
+                </div>
+              </div>
+
+              <div *ngIf="editingAnnouncement?.id === announcement.id" class="item-edit">
+                <form (ngSubmit)="updateAnnouncement()">
+                  <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" [(ngModel)]="editingAnnouncement!.title" name="editTitle" required
+                      class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label>Content</label>
+                    <textarea [(ngModel)]="editingAnnouncement!.content" name="editContent" rows="3" required
+                      class="form-control"></textarea>
+                  </div>
+                  <!-- ImageUrl field removed -->
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Priority</label>
+                      <input type="number" [(ngModel)]="editingAnnouncement!.priority" name="editPriority" min="0"
+                        max="10" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                      <label>Expiry Date</label>
+                      <input type="datetime-local" [(ngModel)]="editingAnnouncement!.expiryDate" name="editExpiry"
+                        class="form-control" />
+                    </div>
+                  </div>
+                  <div class="form-group checkbox-group">
+                    <label>
+                      <input type="checkbox" [(ngModel)]="editingAnnouncement!.isActive" name="editActive" />
+                      Active
+                    </label>
+                  </div>
+                  <div class="edit-actions">
+                    <button type="submit" class="save-btn">Save</button>
+                    <button type="button" class="cancel-btn" (click)="cancelEditAnnouncement()">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gallery Tab -->
+      <div *ngIf="activeTab === 'gallery'" class="tab-content">
+        <!-- Create Gallery Item Form -->
+        <div class="create-section">
+          <h2>Create New Gallery Item</h2>
+          <form (ngSubmit)="createGallery()" #galleryForm="ngForm" class="create-form">
+            <div class="form-group">
+              <label>Title *</label>
+              <input type="text" [(ngModel)]="newGalleryItem.title" name="galleryTitle" required class="form-control" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Type *</label>
+                <select [(ngModel)]="newGalleryItem.type" name="galleryType" required class="form-control">
+                  <option value="image">Image</option>
+                  <option value="video">Video</option>
+                  <option value="pdf">PDF Document</option>
+                </select>
+              </div>
+
+              <!-- Upload Source Toggle (For all types) -->
+              <div class="form-group">
+                <label class="d-block mb-2">Upload Source:</label>
+                <div class="checkbox-group d-flex flex-column justify-content-center">
+                  <label>
+                    <input type="radio" name="uploadSource" id="sourceUrl" value="url"
+                      [(ngModel)]="$any(newGalleryItem).uploadSource">
+                    Direct Link (URL)
+                  </label>
+                  <label>
+                    <input type="radio" name="uploadSource" id="sourceFile" value="file"
+                      [(ngModel)]="$any(newGalleryItem).uploadSource">
+                    Upload File
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- URL Input -->
+            <div class="form-group" *ngIf="$any(newGalleryItem).uploadSource === 'url'">
+              <label>URL * (Image Link, Video Link, or PDF Link)</label>
+              <input type="text" [(ngModel)]="newGalleryItem.url" name="galleryUrl"
+                [required]="$any(newGalleryItem).uploadSource === 'url'" class="form-control" />
+            </div>
+
+            <!-- File Input -->
+            <div class="form-group" *ngIf="$any(newGalleryItem).uploadSource === 'file'">
+              <label>Select File *</label>
+              <input type="file" (change)="onFileSelected($event, 'gallery')"
+                [accept]="newGalleryItem.type === 'video' ? 'video/*' : (newGalleryItem.type === 'pdf' ? 'application/pdf' : 'image/*')"
+                class="form-control" [required]="$any(newGalleryItem).uploadSource === 'file'" />
+            </div>
+
+            <div class="form-group" *ngIf="newGalleryItem.type === 'video' || newGalleryItem.type === 'pdf'">
+              <label>Thumbnail URL (Optional)</label>
+              <input type="text" [(ngModel)]="newGalleryItem.thumbnailUrl" name="galleryThumbnail"
+                class="form-control" />
+            </div>
+
+            <div class="form-group">
+              <label>Description</label>
+              <textarea [(ngModel)]="newGalleryItem.description" name="galleryDescription" rows="3"
+                class="form-control"></textarea>
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label>
+                <input type="checkbox" [(ngModel)]="newGalleryItem.isActive" name="galleryActive" />
+                Active
+              </label>
+            </div>
+
+            <button type="submit" class="submit-btn" [disabled]="isLoading">
+              {{ isLoading ? 'Creating...' : 'Add to Gallery' }}
+            </button>
+          </form>
+        </div>
+
+        <!-- Gallery List -->
+        <div class="list-section">
+          <h2>Gallery Items ({{ galleryList.length }})</h2>
+
+          <div *ngIf="isGalleryLoading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Loading...</p>
+          </div>
+
+          <div class="items-grid" *ngIf="!isGalleryLoading">
+            <div *ngFor="let item of galleryList" class="item-card">
+              <div *ngIf="editingGalleryItem?.id !== item.id" class="item-view">
+                <div class="item-header">
+                  <h3>{{ item.title }}</h3>
+                  <div class="badges">
+                    <span class="badge type-badge">{{ item.type | titlecase }}</span>
+                    <span class="badge" [class.active]="item.isActive">
+                      {{ item.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="item-preview mt-2 mb-2" *ngIf="item.type === 'image'">
+                  <img [src]="item.url" alt="Preview"
+                    style="max-height: 100px; max-width: 100%; object-fit: cover; border-radius: 4px;">
+                </div>
+                <p class="item-content text-break"><small>{{ item.url }}</small></p>
+                <p class="item-meta">
+                  Uploaded on {{ item.uploadedDate | date:'short' }}
+                </p>
+                <div class="item-actions">
+                  <button class="edit-btn" (click)="startEditGallery(item)">Edit</button>
+                  <button class="delete-btn" (click)="deleteGallery(item.id!)">Delete</button>
+                </div>
+              </div>
+
+              <div *ngIf="editingGalleryItem?.id === item.id" class="item-edit">
+                <form (ngSubmit)="updateGallery()">
+                  <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" [(ngModel)]="editingGalleryItem!.title" name="editGalleryTitle" required
+                      class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label>Type</label>
+                    <select [(ngModel)]="editingGalleryItem!.type" name="editGalleryType" required class="form-control">
+                      <option value="image">Image</option>
+                      <option value="video">Video</option>
+                      <option value="pdf">PDF Document</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>URL</label>
+                    <input type="text" [(ngModel)]="editingGalleryItem!.url" name="editGalleryUrl" required
+                      class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label>Thumbnail URL</label>
+                    <input type="text" [(ngModel)]="editingGalleryItem!.thumbnailUrl" name="editGalleryThumbnail"
+                      class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label>Description</label>
+                    <textarea [(ngModel)]="editingGalleryItem!.description" name="editGalleryDescription" rows="2"
+                      class="form-control"></textarea>
+                  </div>
+                  <div class="form-group checkbox-group">
+                    <label>
+                      <input type="checkbox" [(ngModel)]="editingGalleryItem!.isActive" name="editGalleryActive" />
+                      Active
+                    </label>
+                  </div>
+                  <div class="edit-actions">
+                    <button type="submit" class="save-btn">Save</button>
+                    <button type="button" class="cancel-btn" (click)="cancelEditGallery()">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carousel Tab -->
+      <div *ngIf="activeTab === 'carousel'" class="tab-content">
+        <!-- Create Carousel Item Form -->
+        <div class="create-section">
+          <h2>Add Carousel Image</h2>
+          <form (ngSubmit)="createCarouselItem()" #carouselForm="ngForm" class="create-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="d-block mb-2">Image Source:</label>
+                <div class="checkbox-group d-flex flex-column justify-content-center">
+                  <label>
+                    <input type="radio" name="carouselUploadSource" value="url"
+                      [(ngModel)]="$any(newCarouselItem).uploadSource">
+                    Direct Link
+                  </label>
+                  <label>
+                    <input type="radio" name="carouselUploadSource" value="file"
+                      [(ngModel)]="$any(newCarouselItem).uploadSource">
+                    Upload File
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" *ngIf="$any(newCarouselItem).uploadSource === 'url'">
+              <label>Image URL *</label>
+              <input type="text" [(ngModel)]="newCarouselItem.imageUrl" name="carouselImageUrl" required
+                class="form-control" />
+            </div>
+
+            <div class="form-group" *ngIf="$any(newCarouselItem).uploadSource === 'file'">
+              <label>Select Image *</label>
+              <input type="file" (change)="onFileSelected($event, 'carousel')" accept="image/*" class="form-control"
+                [required]="!newCarouselItem.imageUrl" />
+            </div>
+
+            <div class="form-group">
+              <label>Title (Optional)</label>
+              <input type="text" [(ngModel)]="newCarouselItem.title" name="carouselTitle" class="form-control" />
+            </div>
+
+            <div class="form-group">
+              <label>Sort Order</label>
+              <input type="number" [(ngModel)]="newCarouselItem.sortOrder" name="carouselSortOrder"
+                class="form-control" />
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label>
+                <input type="checkbox" [(ngModel)]="newCarouselItem.isActive" name="carouselActive" />
+                Active
+              </label>
+            </div>
+
+            <button type="submit" class="submit-btn" [disabled]="isLoading">
+              {{ isLoading ? 'Adding...' : 'Add Image' }}
+            </button>
+          </form>
+        </div>
+
+        <!-- Carousel List -->
+        <div class="list-section">
+          <h2>Carousel Items ({{ carouselList.length }})</h2>
+
+          <div *ngIf="isCarouselLoading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Loading...</p>
+          </div>
+
+          <div class="items-grid" *ngIf="!isCarouselLoading">
+            <div *ngFor="let item of carouselList" class="item-card">
+              <div *ngIf="editingCarouselItem?.id !== item.id" class="item-view">
+                <div class="item-header">
+                  <h3>Order: {{ item.sortOrder }}</h3>
+                  <span class="badge" [class.active]="item.isActive">
+                    {{ item.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+                <div class="item-preview mt-2">
+                  <img [src]="item.imageUrl" alt="Preview"
+                    style="max-height: 150px; max-width: 100%; object-fit: cover; border-radius: 4px;">
+                </div>
+                <p class="item-content mt-2" *ngIf="item.title"><strong>Title:</strong> {{ item.title }}</p>
+                <div class="item-actions">
+                  <button class="edit-btn" (click)="startEditCarousel(item)">Edit</button>
+                  <button class="delete-btn" (click)="deleteCarousel(item.id!)">Delete</button>
+                </div>
+              </div>
+
+              <div *ngIf="editingCarouselItem?.id === item.id" class="item-edit">
+                <form (ngSubmit)="updateCarousel()">
+                  <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="text" [(ngModel)]="editingCarouselItem!.imageUrl" name="editCarouselUrl" required
+                      class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" [(ngModel)]="editingCarouselItem!.title" name="editCarouselTitle"
+                      class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label>Sort Order</label>
+                    <input type="number" [(ngModel)]="editingCarouselItem!.sortOrder" name="editCarouselOrder"
+                      class="form-control" />
+                  </div>
+                  <div class="form-group checkbox-group">
+                    <label>
+                      <input type="checkbox" [(ngModel)]="editingCarouselItem!.isActive" name="editCarouselActive" />
+                      Active
+                    </label>
+                  </div>
+                  <div class="edit-actions">
+                    <button type="submit" class="save-btn">Save</button>
+                    <button type="button" class="cancel-btn" (click)="cancelEditCarousel()">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ deleteModalTitle }}</h3>
+        <button class="modal-close" (click)="closeDeleteModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="warning-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <p>{{ deleteModalMessage }}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeDeleteModal()">Cancel</button>
+        <button class="btn-delete" (click)="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

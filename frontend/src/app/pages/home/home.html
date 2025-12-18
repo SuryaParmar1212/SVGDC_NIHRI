@@ -1,0 +1,234 @@
+<div class="home-container">
+  <!-- Hero Section -->
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <!-- Dynamic Slides -->
+    <div class="hero-bg" *ngFor="let item of carouselItems; let i = index" [class.active]="i === currentSlideIndex"
+      [style.backgroundImage]="'linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(' + item.imageUrl + ')'">
+    </div>
+
+    <!-- Fallback if no carousel items -->
+    <div class="hero-bg active" *ngIf="carouselItems.length === 0"
+      style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('assets/campus.jpg');"></div>
+
+    <div class="hero-content">
+      <h1 class="hero-title">Welcome to Nihri College</h1>
+      <p class="hero-subtitle">Excellence in Education Since 1950</p>
+      <div class="hero-buttons">
+        <a href="/admissions" class="btn btn-primary">Apply Now</a>
+        <a href="/about" class="btn btn-secondary">Learn More</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+
+
+    <!-- News Section -->
+    <section class="news-section">
+      <div class="section-header">
+        <h2>
+          <span class="icon">📰</span>
+          Latest News
+        </h2>
+        <a href="/news" class="view-all">View All →</a>
+      </div>
+
+      <div *ngIf="isLoadingNews" class="loading">
+        <div class="spinner"></div>
+        <p>Loading news...</p>
+      </div>
+
+      <!-- <div *ngIf="!isLoadingNews && newsList.length === 0" class="no-data">
+        <p>No news available at the moment.</p>
+      </div> -->
+      <section class="section bg-light-gray">
+        <div class="container">
+          <div class="row g-4">
+
+            <!-- ================= Latest News ================= -->
+            <div class="col-md-6">
+              <div class="card h-100">
+
+                <div class="card-header bg-primary text-white">
+                  <h5 class="mb-0">
+                    <i class="bi bi-newspaper"></i> Latest News
+                  </h5>
+                </div>
+
+                <div class="card-body p-0">
+
+                  <!-- Loading -->
+                  <div *ngIf="isLoadingNews" class="text-center py-4">
+                    <div class="spinner-border text-primary"></div>
+                    <p class="mt-2">Loading news...</p>
+                  </div>
+
+                  <!-- No Data -->
+                  <div *ngIf="!isLoadingNews && newsList.length === 0" class="text-center py-4 text-muted">
+                    No news available at the moment.
+                  </div>
+
+                  <!-- News List -->
+                  <div *ngIf="!isLoadingNews && newsList.length > 0">
+                    <div class="news-item" *ngFor="let news of newsList">
+                      <p class="news-date">
+                        {{ news.publishedDate | date:'dd MMM yyyy' }}
+                      </p>
+                      <h6 class="news-title">{{ news.title }}</h6>
+                      <p class="mb-0 text-muted">
+                        {{ news.content | slice:0:100 }}
+                        <span *ngIf="news.content.length > 100">...</span>
+                      </p>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="card-footer">
+                  <a routerLink="/news" class="btn btn-sm btn-primary">
+                    View All News
+                  </a>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- ================= Notice Board ================= -->
+            <div class="col-md-6">
+              <div class="card h-100">
+
+                <div class="card-header bg-secondary text-white">
+                  <h5 class="mb-0">
+                    <i class="bi bi-pin-angle"></i> Notice Board
+                  </h5>
+                </div>
+
+                <div class="card-body p-0">
+
+                  <!-- Loading -->
+                  <div *ngIf="isLoadingAnnouncements" class="text-center py-4">
+                    <div class="spinner-border text-secondary"></div>
+                    <p class="mt-2">Loading notices...</p>
+                  </div>
+
+                  <!-- No Data -->
+                  <div *ngIf="!isLoadingAnnouncements && announcementsList.length === 0"
+                    class="text-center py-4 text-muted">
+                    No notices available at the moment.
+                  </div>
+
+                  <!-- Notice List -->
+                  <div *ngIf="!isLoadingAnnouncements && announcementsList.length > 0">
+                    <div class="notice-item" *ngFor="let notice of announcementsList">
+
+                      <p class="notice-date">
+                        {{ notice.createdDate | date:'dd MMM yyyy' }}
+                      </p>
+
+                      <h6 class="notice-title">
+                        <span *ngIf="notice.priority && notice.priority > 5" class="badge bg-danger me-2">
+                          New
+                        </span>
+                        {{ notice.title }}
+                      </h6>
+
+                      <p class="mb-0 text-muted">
+                        {{ notice.content | slice:0:100 }}
+                        <span *ngIf="notice.content.length > 100">...</span>
+                      </p>
+
+                      <div *ngIf="notice.attachmentUrl" class="mt-2">
+                        <a [href]="notice.attachmentUrl" target="_blank" class="btn btn-sm btn-outline-secondary"
+                          style="font-size: 0.8rem; padding: 2px 8px;">
+                          Attachment <i class="bi bi-download ms-1"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="card-footer">
+                  <a routerLink="/announcements" class="btn btn-sm btn-secondary">
+                    View All Notices
+                  </a>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+
+      <div class="news-grid" *ngIf="!isLoadingNews && newsList.length > 0">
+        <article class="news-card" *ngFor="let news of newsList">
+          <div class="news-image" *ngIf="news.imageUrl">
+            <img [src]="news.imageUrl" [alt]="news.title" />
+            <span class="category-badge">{{ news.category }}</span>
+          </div>
+          <div class="news-image placeholder" *ngIf="!news.imageUrl">
+            <div class="placeholder-icon">📰</div>
+            <span class="category-badge">{{ news.category }}</span>
+          </div>
+          <div class="news-content">
+            <h3>{{ news.title }}</h3>
+            <p class="news-excerpt">{{ news.content.substring(0, 150) }}{{ news.content.length > 150 ? '...' : '' }}</p>
+            <div class="news-meta">
+              <span class="author">
+                <span class="icon">✍️</span>
+                {{ news.author }}
+              </span>
+              <span class="date">
+                <span class="icon">📅</span>
+                {{ formatDate(news.publishedDate) }}
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Quick Links Section -->
+    <section class="quick-links-section">
+      <h2>Quick Links</h2>
+      <div class="quick-links-grid">
+        <a href="/departments" class="quick-link-card">
+          <span class="link-icon">🎓</span>
+          <h3>Departments</h3>
+          <p>Explore our academic departments</p>
+        </a>
+        <a href="/admissions" class="quick-link-card">
+          <span class="link-icon">📝</span>
+          <h3>Admissions</h3>
+          <p>Apply for admission</p>
+        </a>
+        <a href="https://spumandiexam.in/Main/Index" class="quick-link-card">
+          <span class="link-icon">👨‍🎓</span>
+          <h3>Student Registration</h3>
+          <p>Register as a new student</p>
+        </a>
+        <a href="https://scholarships.gov.in/Students" class="quick-link-card">
+          <span class="link-icon">💰</span>
+          <h3>Scholarships</h3>
+          <p>Apply for scholarships</p>
+        </a>
+        <a href="/about" class="quick-link-card">
+          <span class="link-icon">ℹ️</span>
+          <h3>About Us</h3>
+          <p>Learn about our college</p>
+        </a>
+        <a href="/admin/login" class="quick-link-card admin-link">
+          <span class="link-icon">🔐</span>
+          <h3>Admin Panel</h3>
+          <p>Manage content</p>
+        </a>
+      </div>
+    </section>
+
+  </div>
+</div>

@@ -1,0 +1,262 @@
+/* Top Bar */
+.top-bar {
+  background-color: #002147;
+  /* Dark Navy Blue */
+  color: #ffffff;
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+.top-bar a {
+  color: #ffffff;
+  text-decoration: none;
+  transition: opacity 0.3s;
+}
+
+.top-bar a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.top-bar i {
+  margin-right: 5px;
+}
+
+/* Announcement Ticker */
+/* Announcement Ticker */
+.announcement-ticker {
+  background-color: #ffc107;
+  /* Warning Yellow */
+  color: #000000;
+  padding: 8px 0;
+  font-size: 14px;
+  overflow: hidden;
+  border-bottom: 1px solid #e0a800;
+}
+
+.ticker-wrapper {
+  flex-grow: 1;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.ticker-content {
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 100%;
+  /* Start from right */
+  animation: ticker 30s linear infinite;
+}
+
+.ticker-content span {
+  display: inline-block;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+/* Main Header */
+.main-header {
+  background-color: #ffffff;
+  border-bottom: 4px solid #002147;
+}
+
+.college-logo {
+  max-height: 100px;
+  width: auto;
+}
+
+.college-name {
+  color: #002147;
+  font-family: 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 28px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.college-tagline {
+  color: #dc3545;
+  /* Bootstrap Red */
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Navigation Bar */
+.navbar {
+  background-color: #002147;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-height: 50px;
+  z-index: 1000;
+}
+
+.navbar .nav-link {
+  color: #ffffff !important;
+  font-weight: 600;
+  padding: 15px 25px !important;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-bottom: 3px solid transparent;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffc107 !important;
+  border-bottom: 3px solid #ffc107;
+}
+
+/* Dropdown Menu - Premium Hover Styling */
+.dropdown-menu {
+  background-color: #ffffff;
+  border: none;
+  border-top: 4px solid #ffc107;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  margin-top: 0;
+  padding: 10px 0;
+  min-width: 280px;
+  visibility: hidden;
+  opacity: 0;
+  display: block;
+  /* Always block but hidden for animation */
+  transform: translateY(15px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item.dropdown:hover>.dropdown-menu {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  color: #333333;
+  padding: 12px 25px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #002147;
+  padding-left: 30px;
+}
+
+.dropdown-divider {
+  margin: 8px 0;
+  border-top: 1px solid #eee;
+}
+
+/* Submenu Styling */
+.dropdown-submenu {
+  position: relative;
+}
+
+/* Add caret to submenu items that have children */
+.dropdown-submenu>.dropdown-toggle::after {
+  display: inline-block;
+  margin-left: .255em;
+  vertical-align: .255em;
+  content: "";
+  border-top: .3em solid;
+  border-right: .3em solid transparent;
+  border-bottom: 0;
+  border-left: .3em solid transparent;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  /* Rotate to point right */
+  color: #999;
+}
+
+.dropdown-item:hover::after {
+  color: #003366;
+}
+
+/* Hover Logic for Desktop */
+@media (min-width: 992px) {
+
+  /* Show main dropdown on hover */
+  .navbar-nav .dropdown:hover>.dropdown-menu {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  /* Show submenu on hover */
+  .dropdown-submenu:hover>.dropdown-menu {
+    display: block;
+    top: 0;
+    left: 100%;
+    margin-top: -1px;
+    /* Align nicely */
+    animation: fadeIn 0.3s ease-in-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 991px) {
+  .college-name {
+    font-size: 20px;
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .college-logo {
+    display: block;
+    margin: 0 auto;
+    max-height: 80px;
+  }
+
+  .col-md-10 {
+    text-align: center;
+  }
+
+  .navbar .nav-link {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Ensure dropdowns work normally on click for mobile */
+  .dropdown-menu {
+    border-top: none;
+    box-shadow: none;
+    border-left: 3px solid #ffc107;
+    margin-left: 15px;
+  }
+
+  .dropdown-submenu>.dropdown-menu {
+    margin-left: 15px;
+  }
+}

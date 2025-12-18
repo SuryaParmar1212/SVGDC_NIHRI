@@ -26,3 +26,15 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+/backend/.vs
+/backend/bin
+ADMIN_DASHBOARD_IMPROVEMENTS.md
+ASYNC_AWAIT_MIGRATION.md
+NEW_FEATURES_GUIDE.md
+/frontend/.vscode
+/backend/wwwroot
+/.agent
+/frontend/src/assets/pdf
+/backend/obj/Debug/net9.0
+/backend/obj/Release/net9.0
+/backend/obj
