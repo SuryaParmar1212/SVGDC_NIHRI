@@ -1,4 +1,5 @@
 import { Component, OnInit, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PageService, Page } from '../../../services/page.service';
@@ -10,6 +11,35 @@ import { ToastService } from '../../../services/toast.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
+    <!-- Custom Dialog Modal -->
+    <div class="custom-dialog-overlay" *ngIf="dialogConfig.show">
+      <div class="custom-dialog-card shadow-lg animate-in">
+        <div class="dialog-header p-4 border-bottom">
+          <h5 class="mb-0 fw-bold">{{ dialogConfig.title }}</h5>
+        </div>
+        <div class="dialog-body p-4">
+          <p class="text-muted">{{ dialogConfig.message }}</p>
+          <div *ngIf="dialogConfig.type === 'prompt'" class="mt-3">
+            <label class="small fw-bold text-primary mb-1">{{ dialogConfig.inputLabel || 'Enter Value' }}</label>
+            <input type="text" class="form-control" [(ngModel)]="dialogConfig.value" (keyup.enter)="closeDialog(true)" #dialogInput>
+          </div>
+        </div>
+        <div class="dialog-footer p-4 border-top d-flex justify-content-end gap-2">
+          <button class="btn btn-light px-4 rounded-pill" (click)="closeDialog(false)" *ngIf="dialogConfig.type !== 'alert'">{{ dialogConfig.cancelText || 'Cancel' }}</button>
+          <button class="btn btn-primary px-4 rounded-pill" (click)="closeDialog(true)">{{ dialogConfig.confirmText || (dialogConfig.type === 'confirm' ? 'Confirm' : 'OK') }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Toast (Replaces full-screen overlay) -->
+    <div class="upload-progress-toast shadow-lg animate-in" *ngIf="isLoading">
+      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+      <div class="ms-2">
+        <span class="fw-bold small">Processing...</span>
+        <div class="extra-small opacity-75">Please wait, uploading files</div>
+      </div>
+    </div>
+
     <!-- GRID VIEW (List of Pages) -->
     <div class="container-fluid mt-4 fade-in" *ngIf="!editingPage">
       <div class="container">
@@ -115,27 +145,37 @@ import { ToastService } from '../../../services/toast.service';
                   <label class="section-label">Page Identity</label>
                   <div class="input-group input-group-sm mb-3">
                       <span class="input-group-text bg-light border-0">Slug: /</span>
-                      <input type="text" class="form-control border-0 bg-light" [(ngModel)]="editingPage.slug" (ngModelChange)="markUnsaved()">
+                      <input type="text" class="form-control border-0 bg-light" [(ngModel)]="editingPage!.slug" (ngModelChange)="markUnsaved()">
                   </div>
               </div>
 
               <div class="form-section mb-4">
-                  <label class="section-label">Design & Layout</label>
+                  <label class="section-label">Hero Appearance</label>
                   <div class="mb-3">
-                      <small class="text-muted d-block mb-1">Hero Background Image</small>
-                      <div class="hero-preview-box" [style.backgroundImage]="'url(' + (editingPage.backgroundImageUrl || 'assets/images/college-bg.jpg') + ')'" (click)="changeHeroImage()">
-                          <div class="overlay"><i class="bi bi-image"></i> Edit</div>
+                      <small class="text-muted d-block mb-1">Background Image</small>
+                      <div class="d-flex gap-2 align-items-center mb-2">
+                        <div class="hero-preview-box flex-grow-1" [style.backgroundImage]="editingPage?.backgroundImageUrl ? 'url(' + editingPage?.backgroundImageUrl + ')' : ''" [style.backgroundColor]="editingPage?.backgroundColor || '#002147'" (click)="changeHeroImage()">
+                            <div class="overlay"><i class="bi bi-image"></i> Edit Image</div>
+                        </div>
+                        <button class="btn btn-outline-danger btn-sm" *ngIf="editingPage?.backgroundImageUrl" (click)="editingPage!.backgroundImageUrl = ''; markUnsaved()" title="Remove Image">
+                            <i class="bi bi-trash"></i>
+                        </button>
                       </div>
                   </div>
+                  <div class="mb-3">
+                      <small class="text-muted d-block mb-1">Background Color (if no image)</small>
+                      <input type="color" class="form-control form-control-color w-100" [value]="editingPage?.backgroundColor || '#002147'" (change)="onHeroColorChange($event)" title="Choose Color">
+                  </div>
                   
+                  <label class="section-label mt-4">Layout</label>
                   <div class="layout-selector">
-                      <div class="layout-btn" [class.active]="editingPage.layoutType === 'Standard'" (click)="setLayout('Standard')">
+                      <div class="layout-btn" [class.active]="editingPage?.layoutType === 'Standard'" (click)="setLayout('Standard')">
                           <i class="bi bi-distribute-horizontal"></i><span>Standard</span>
                       </div>
-                      <div class="layout-btn" [class.active]="editingPage.layoutType === 'Sidebar'" (click)="setLayout('Sidebar')">
+                      <div class="layout-btn" [class.active]="editingPage?.layoutType === 'Sidebar'" (click)="setLayout('Sidebar')">
                           <i class="bi bi-layout-sidebar-inset-reverse"></i><span>Sidebar</span>
                       </div>
-                      <div class="layout-btn" [class.active]="editingPage.layoutType === 'FullWidth'" (click)="setLayout('FullWidth')">
+                      <div class="layout-btn" [class.active]="editingPage?.layoutType === 'FullWidth'" (click)="setLayout('FullWidth')">
                           <i class="bi bi-arrows-fullscreen"></i><span>Full Width</span>
                       </div>
                   </div>
@@ -143,7 +183,7 @@ import { ToastService } from '../../../services/toast.service';
 
               <div class="form-section mb-4">
                   <label class="section-label">Search Engine (SEO)</label>
-                  <textarea class="form-control form-control-sm border-0 bg-light" rows="4" [(ngModel)]="editingPage.metaDescription" (ngModelChange)="markUnsaved()" placeholder="Describe this page for Google..."></textarea>
+                  <textarea class="form-control form-control-sm border-0 bg-light" rows="4" [(ngModel)]="editingPage!.metaDescription" (ngModelChange)="markUnsaved()" placeholder="Describe this page for Google..."></textarea>
               </div>
 
               <hr class="my-4 opacity-10">
@@ -151,7 +191,7 @@ import { ToastService } from '../../../services/toast.service';
               <div class="d-flex justify-content-between align-items-center">
                   <span class="small fw-bold">Published Status</span>
                   <div class="form-check form-switch">
-                      <input class="form-check-input p-2" type="checkbox" role="switch" id="pubSwitch" [(ngModel)]="editingPage.isPublished" (ngModelChange)="markUnsaved()">
+                      <input class="form-check-input p-2" type="checkbox" role="switch" id="pubSwitch" [(ngModel)]="editingPage!.isPublished" (ngModelChange)="markUnsaved()">
                   </div>
               </div>
           </div>
@@ -160,14 +200,14 @@ import { ToastService } from '../../../services/toast.service';
       <!-- Live Page Canvas -->
       <div class="editor-canvas">
           <!-- Interactive Hero Section -->
-          <div class="editor-hero" [style.backgroundImage]="'url(' + (editingPage.backgroundImageUrl || 'assets/images/college-bg.jpg') + ')'">
+          <div class="editor-hero" [style.backgroundImage]="editingPage?.backgroundImageUrl ? 'url(' + editingPage?.backgroundImageUrl + ')' : ''" [style.backgroundColor]="editingPage?.backgroundColor || '#002147'">
               <div class="hero-overlay"></div>
               <div class="container h-100 d-flex align-items-center justify-content-center position-relative" style="z-index: 5;">
                   <div class="text-center text-white px-3 w-75">
                       <h1 class="display-3 fw-bold editable-field" 
                           contenteditable="true" 
                           (blur)="onTitleBlur($event)"
-                          [innerHTML]="editingPage.title"></h1>
+                          [innerHTML]="editingPage?.title"></h1>
                       <div class="small opacity-50 mt-3"><i class="bi bi-cursor-fill me-1"></i> Edit title directly</div>
                   </div>
               </div>
@@ -175,12 +215,12 @@ import { ToastService } from '../../../services/toast.service';
 
           <!-- Layout Content Areas -->
           <div class="container py-5">
-              <div class="row" [ngClass]="{'justify-content-center': editingPage.layoutType === 'Standard'}">
+              <div class="row" [ngClass]="{'justify-content-center': editingPage?.layoutType === 'Standard'}">
                   <!-- Main Body Content Area -->
                   <div [ngClass]="{
-                    'col-lg-10': editingPage.layoutType === 'Standard',
-                    'col-lg-8': editingPage.layoutType === 'Sidebar',
-                    'col-lg-12': editingPage.layoutType === 'FullWidth'
+                    'col-lg-10': editingPage?.layoutType === 'Standard',
+                    'col-lg-8': editingPage?.layoutType === 'Sidebar',
+                    'col-lg-12': editingPage?.layoutType === 'FullWidth'
                   }">
                       <div class="editor-main-card shadow-sm border-0 mb-5">
                           <div class="card-body p-4 p-md-5">
@@ -189,7 +229,8 @@ import { ToastService } from '../../../services/toast.service';
                                    class="wysiwyg-area page-content-rich" 
                                    contenteditable="true" 
                                    (input)="onContentInput($event)"
-                                   [innerHTML]="editingPage.content"></div>
+                                   (click)="onContentClick($event)"
+                                   [innerHTML]="initialContent"></div>
                               
                               <div class="toolbar-hint mt-4 text-center text-muted small">
                                  Select text to style or insert links/images
@@ -199,7 +240,7 @@ import { ToastService } from '../../../services/toast.service';
                   </div>
 
                   <!-- Sidebar Area (Conditional) -->
-                  <div class="col-lg-4" *ngIf="editingPage.layoutType === 'Sidebar'">
+                  <div class="col-lg-4" *ngIf="editingPage?.layoutType === 'Sidebar'">
                        <div class="card shadow-sm border-0 mb-4 bg-primary text-white sidebar-editor">
                           <div class="card-body p-4">
                              <div class="section-badge bg-white text-primary mb-3">Sidebar Content</div>
@@ -207,7 +248,8 @@ import { ToastService } from '../../../services/toast.service';
                                   class="wysiwyg-area"
                                   contenteditable="true"
                                   (input)="onSidebarInput($event)"
-                                  [innerHTML]="editingPage.sidebarContent"></div>
+                                  (click)="onContentClick($event)"
+                                  [innerHTML]="initialSidebarContent"></div>
                           </div>
                        </div>
                   </div>
@@ -215,33 +257,85 @@ import { ToastService } from '../../../services/toast.service';
           </div>
       </div>
 
-      <!-- Floating Text Styling Toolbar -->
-      <div class="floating-toolbar shadow-lg animate-pop" *ngIf="showToolbar" [style.top.px]="toolbarY" [style.left.px]="toolbarX">
-          <div class="toolbar-group">
-              <button (click)="exec('bold')" title="Bold"><i class="bi bi-type-bold"></i></button>
-              <button (click)="exec('italic')" title="Italic"><i class="bi bi-type-italic"></i></button>
-              <button (click)="exec('underline')" title="Underline"><i class="bi bi-type-underline"></i></button>
+      <!-- Main Editor Toolbar (Floating at Bottom) -->
+      <div class="editor-toolbar bg-white shadow-lg py-2 px-4">
+          <div class="container d-flex flex-wrap align-items-center gap-2">
+              <div class="toolbar-group bg-light p-1 rounded d-flex gap-1" title="Format">
+                  <select class="form-select form-select-sm border-0 bg-transparent fw-bold" style="width: 140px;" (change)="exec('formatBlock', $any($event.target).value)">
+                      <option value="P">Paragraph</option>
+                      <option value="H1">Heading 1</option>
+                      <option value="H2">Heading 2</option>
+                      <option value="H3">Heading 3</option>
+                      <option value="H4">Heading 4</option>
+                      <option value="BLOCKQUOTE">Quote</option>
+                  </select>
+              </div>
+
+              <div class="toolbar-divider mx-1"></div>
+
+              <div class="toolbar-group bg-light p-1 rounded d-flex gap-1">
+                  <button class="btn btn-sm btn-light border-0" (click)="exec('bold')" title="Bold"><i class="bi bi-type-bold"></i></button>
+                  <button class="btn btn-sm btn-light border-0" (click)="exec('italic')" title="Italic"><i class="bi bi-type-italic"></i></button>
+                  <button class="btn btn-sm btn-light border-0" (click)="exec('underline')" title="Underline"><i class="bi bi-type-underline"></i></button>
+                  <button class="btn btn-sm btn-light border-0" (click)="exec('strikeThrough')" title="Strikethrough"><i class="bi bi-type-strikethrough"></i></button>
+              </div>
+
+              <div class="toolbar-divider mx-1"></div>
+
+              <div class="toolbar-group bg-light p-1 rounded d-flex gap-1">
+                  <button class="btn btn-sm btn-light border-0" (click)="exec('justifyLeft')" title="Left"><i class="bi bi-text-left"></i></button>
+                  <button class="btn btn-sm btn-light border-0" (click)="exec('justifyCenter')" title="Center"><i class="bi bi-text-center"></i></button>
+                  <button class="btn btn-sm btn-light border-0" (click)="exec('justifyRight')" title="Right"><i class="bi bi-text-right"></i></button>
+                  <button class="btn btn-sm btn-light border-0" (click)="exec('justifyFull')" title="Justify"><i class="bi bi-text-paragraph"></i></button>
+              </div>
+
+              <div class="toolbar-divider mx-1"></div>
+
+              <div class="toolbar-group bg-light p-1 rounded d-flex gap-1">
+                  <button class="btn btn-sm btn-light border-0" (click)="exec('insertUnorderedList')" title="Bullet List"><i class="bi bi-list-ul"></i></button>
+                  <button class="btn btn-sm btn-light border-0" (click)="exec('insertOrderedList')" title="Number List"><i class="bi bi-list-ol"></i></button>
+              </div>
+
+              <div class="toolbar-divider mx-1"></div>
+
+              <div class="toolbar-group bg-light p-1 rounded d-flex gap-1">
+                  <div class="d-flex align-items-center px-2 gap-2" title="Text Color">
+                    <i class="bi bi-palette small text-muted"></i>
+                    <input type="color" class="form-control-color border-0 p-0 bg-transparent" style="width: 24px; height: 24px;" (change)="onColorChange($event)" [value]="activeColor">
+                  </div>
+                  <button class="btn btn-sm btn-light border-0" (click)="insertLink()" title="Add Link"><i class="bi bi-link-45deg"></i></button>
+              </div>
+
+              <div class="toolbar-divider mx-1"></div>
+
+              <!-- Media & Blocks -->
+              <div class="toolbar-group p-1 rounded d-flex gap-2 ms-auto">
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-primary dropdown-toggle rounded-pill px-3" type="button" data-bs-toggle="dropdown">
+                      <i class="bi bi-plus-circle me-1"></i> Add Block
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2">
+                      <li><h6 class="dropdown-header">Media</h6></li>
+                      <li><button class="dropdown-item rounded" (click)="triggerEditorFileUpload('image')"><i class="bi bi-image me-2"></i> Upload Image(s)</button></li>
+                      <li><button class="dropdown-item rounded" (click)="triggerEditorFileUpload('pdf')"><i class="bi bi-file-earmark-pdf me-2"></i> Upload PDF</button></li>
+                      <li><button class="dropdown-item rounded" (click)="insertDocumentLink()"><i class="bi bi-link-45deg me-2"></i> Document Link (Text)</button></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><h6 class="dropdown-header">Layout</h6></li>
+                      <li><button class="dropdown-item rounded" (click)="insertSideBySide('left')"><i class="bi bi-layout-sidebar me-2"></i> Image Left Block</button></li>
+                      <li><button class="dropdown-item rounded" (click)="insertSideBySide('right')"><i class="bi bi-layout-sidebar-reverse me-2"></i> Image Right Block</button></li>
+                      <li><button class="dropdown-item rounded" (click)="addBlock()"><i class="bi bi-text-paragraph me-2"></i> Paragraph Block</button></li>
+                      <li><button class="dropdown-item rounded" (click)="insertUnderlinedHeading()"><i class="bi bi-type-h2 me-2"></i> Themed Heading</button></li>
+                      <li><button class="dropdown-item rounded" (click)="insertThemedButton()"><i class="bi bi-rectangle me-2"></i> Themed Button</button></li>
+                    </ul>
+                  </div>
+              </div>
           </div>
-          <div class="toolbar-divider"></div>
-          <div class="toolbar-group">
-              <button (click)="exec('formatBlock', 'h1')" title="H1">H1</button>
-              <button (click)="exec('formatBlock', 'h2')" title="H2">H2</button>
-              <button (click)="exec('formatBlock', 'h3')" title="H3">H3</button>
-          </div>
-          <div class="toolbar-divider"></div>
-          <div class="toolbar-group">
-              <button (click)="exec('justifyLeft')" title="Align Left"><i class="bi bi-text-left"></i></button>
-              <button (click)="exec('justifyCenter')" title="Align Center"><i class="bi bi-text-center"></i></button>
-              <button (click)="exec('justifyRight')" title="Align Right"><i class="bi bi-text-right"></i></button>
-          </div>
-          <div class="toolbar-divider"></div>
-          <div class="toolbar-group">
-              <button (click)="openColorPicker()" title="Text Color"><i class="bi bi-palette" [style.color]="activeColor"></i></button>
-              <button (click)="insertLink()" title="Add Link"><i class="bi bi-link-45deg"></i></button>
-              <button (click)="triggerEditorFileUpload()" title="Upload Image"><i class="bi bi-cloud-arrow-up"></i></button>
-          </div>
-          <input type="color" #colorPicker style="display: none;" (change)="onColorChange($event)">
       </div>
+
+      <!-- Hidden Inputs -->
+      <input type="file" #editorFileUpload style="display: none;" (change)="onEditorFileSelected($event)" accept="image/*" multiple>
+      <input type="file" #pdfUpload style="display: none;" (change)="onPdfSelected($event)" accept="application/pdf">
+
     </div>
   `,
   styles: [`
@@ -313,20 +407,113 @@ import { ToastService } from '../../../services/toast.service';
     .wysiwyg-area { min-height: 400px; outline: none; font-size: 1.15rem; line-height: 1.8; color: #2c3e50; }
     .sidebar-editor { border-radius: 20px; }
 
-    .floating-toolbar {
-      position: fixed; display: flex; align-items: center; background: #1a1a1a; padding: 6px; border-radius: 12px; z-index: 2200;
-      border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(12px);
-    }
-    .toolbar-group { display: flex; gap: 2px; }
-    .toolbar-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.1); mx: 8px; }
-    .floating-toolbar button {
-      background: none; border: none; color: #ddd; width: 36px; height: 36px; border-radius: 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center;
-    }
-    .floating-toolbar button:hover { background: #333; color: #0d6efd; }
-    .animate-pop { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    @keyframes pop { 0% { transform: scale(0.8) translateY(10px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+    .editor-canvas { padding-bottom: 120px; } /* Space for floating toolbar */
 
+    .editor-toolbar { 
+        position: fixed; 
+        bottom: 30px; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        z-index: 2100; 
+        border-radius: 100px;
+        border: 1px solid rgba(0,0,0,0.1);
+        width: auto;
+        min-width: 600px;
+        max-width: 95%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    ::ng-deep .wysiwyg-area img { 
+        width: 100%; 
+        height: auto; 
+        border-radius: 15px; 
+        margin: 2rem 0; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    ::ng-deep .wysiwyg-area a {
+        color: #0d6efd;
+        text-decoration: underline;
+        font-weight: 600;
+    }
+    .toolbar-divider { width: 1px; height: 24px; background: #dee2e6; }
+    .form-control-color::-webkit-color-swatch { border-radius: 4px; border: 1px solid #dee2e6; }
+    
     .extra-small { font-size: 0.65rem; }
+
+    /* TinyMCE-like focus for blocks */
+    ::ng-deep .side-by-side-row { 
+        display: flex; gap: 30px; align-items: center; margin: 30px 0; border: 1px dashed transparent; padding: 10px; transition: 0.2s;
+    }
+    ::ng-deep .side-by-side-row:hover { border-color: #0d6efd; }
+    ::ng-deep .side-image { flex: 1; max-width: 50%; }
+    ::ng-deep .side-image img { width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    ::ng-deep .side-content { flex: 1; }
+    
+    ::ng-deep .underlined-heading { margin: 2rem 0 1.5rem; }
+    ::ng-deep .underlined-heading h2 { margin-bottom: 5px; color: #002147; font-weight: 700; }
+    ::ng-deep .accent-line { width: 60px; height: 3px; background-color: #ffc107; }
+
+    ::ng-deep .themed-btn { 
+        display: inline-block; background: #002147; color: white !important; padding: 12px 30px; border-radius: 6px; 
+        text-decoration: none; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 10px 0;
+    }
+    
+    ::ng-deep .pdf-viewer-card-dynamic { 
+        background: white; border-radius: 12px; padding: 2rem; 
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); margin: 2rem 0;
+        position: relative;
+    }
+    ::ng-deep .pdf-viewer-card-dynamic::after { 
+        content: 'PDF PREVIEW'; position: absolute; top: 10px; right: 10px; 
+        font-size: 0.6rem; background: #dc3545; color: white; padding: 2px 8px; 
+        border-radius: 4px; pointer-events: none; z-index: 10;
+    }
+    ::ng-deep .pdf-container-embedded { 
+        border-radius: 8px; overflow: hidden; 
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+        background: #f1f5f9; border: 1px solid #e2e8f0;
+    }
+
+        ::ng-deep .pdf-container-embedded iframe { height: 450px !important; }
+    
+    ::ng-deep .removable-block { position: relative; transition: all 0.2s; }
+    ::ng-deep .removable-block:hover { outline: 2px dashed #dc3545; outline-offset: 4px; border-radius: 8px; }
+    ::ng-deep .delete-block-btn { 
+        position: absolute; top: -15px; right: -15px; 
+        width: 30px; height: 30px; background: #dc3545; color: white; 
+        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+        cursor: pointer; opacity: 0; transition: 0.2s; z-index: 100;
+        font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+    ::ng-deep .removable-block:hover .delete-block-btn { opacity: 1; }
+
+    /* Custom Dialog Styles */
+    .custom-dialog-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+        z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .custom-dialog-card {
+        background: white; border-radius: 24px; width: 100%; max-width: 450px; overflow: hidden;
+    }
+    
+    .upload-progress-toast {
+        position: fixed; 
+        bottom: 100px; 
+        right: 30px; 
+        background: white; 
+        padding: 12px 20px; 
+        border-radius: 16px; 
+        z-index: 10000; 
+        display: flex; 
+        align-items: center; 
+        border: 1px solid #eee;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.1) !important;
+    }
+
+    /* Gallery Styles Removed */
   `]
 })
 export class ManagePagesComponent implements OnInit {
@@ -339,21 +526,43 @@ export class ManagePagesComponent implements OnInit {
   toolbarX = 0;
   toolbarY = 0;
   activeColor = '#000000';
+  isDocumentLinkMode = false;
+  isGalleryMode = false;
+
+  dialogConfig = {
+    show: false,
+    title: '',
+    message: '',
+    type: 'alert' as 'alert' | 'confirm' | 'prompt',
+    inputLabel: '',
+    confirmText: '',
+    cancelText: '',
+    value: '',
+    resolve: (val: any) => {}
+  };
 
   @ViewChild('contentArea') contentArea!: ElementRef;
   @ViewChild('sidebarArea') sidebarArea!: ElementRef;
   @ViewChild('editorFileUpload') editorFileUpload!: ElementRef;
+  @ViewChild('pdfUpload') pdfUpload!: ElementRef;
   @ViewChild('colorPicker') colorPicker!: ElementRef;
+
+  // Fix for cursor jumping: bind to initial content, not live content
+  initialContent: SafeHtml = '';
+  initialSidebarContent: SafeHtml = '';
+  selectedImageElement: HTMLImageElement | null = null;
 
   constructor(
     private pageService: PageService,
     private fileService: FileService,
     private toastService: ToastService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sanitizer: DomSanitizer
   ) { }
 
   ngOnInit(): void {
     this.loadPages();
+    this.restoreEditState();
     // Monitor text selection for toolbar
     document.onselectionchange = () => {
       const selection = window.getSelection();
@@ -397,7 +606,36 @@ export class ManagePagesComponent implements OnInit {
 
   markUnsaved(): void {
     this.saved = false;
+    this.persistEditState();
     this.cdr.detectChanges();
+  }
+
+  persistEditState(): void {
+    if (this.editingPage) {
+      // Get current content from DOM
+      if (this.contentArea) this.editingPage.content = this.contentArea.nativeElement.innerHTML;
+      if (this.sidebarArea) this.editingPage.sidebarContent = this.sidebarArea.nativeElement.innerHTML;
+      
+      sessionStorage.setItem('cms_edit_page', JSON.stringify(this.editingPage));
+      sessionStorage.setItem('cms_edit_saved', JSON.stringify(this.saved));
+    }
+  }
+
+  restoreEditState(): void {
+    const storedPage = sessionStorage.getItem('cms_edit_page');
+    const storedSaved = sessionStorage.getItem('cms_edit_saved');
+    if (storedPage) {
+      this.editingPage = JSON.parse(storedPage);
+      this.saved = storedSaved ? JSON.parse(storedSaved) : true;
+      this.initialContent = this.sanitizer.bypassSecurityTrustHtml(this.editingPage?.content || '');
+      this.initialSidebarContent = this.sanitizer.bypassSecurityTrustHtml(this.editingPage?.sidebarContent || '');
+      this.showSettings = false;
+    }
+  }
+
+  clearEditState(): void {
+    sessionStorage.removeItem('cms_edit_page');
+    sessionStorage.removeItem('cms_edit_saved');
   }
 
   startCreate(): void {
@@ -407,24 +645,67 @@ export class ManagePagesComponent implements OnInit {
       content: '<p>Start writing your page content here...</p>',
       sidebarContent: '<h5>Sidebar Section</h5><p>Add useful links here.</p>',
       layoutType: 'Standard',
+      backgroundColor: '#002147',
       isPublished: true
     };
     this.saved = false;
+    this.initialContent = this.sanitizer.bypassSecurityTrustHtml(this.editingPage.content || '');
+    this.initialSidebarContent = this.sanitizer.bypassSecurityTrustHtml(this.editingPage.sidebarContent || '');
     this.showSettings = true;
+    this.persistEditState();
   }
 
   editPage(page: Page): void {
     this.editingPage = { ...page };
     this.saved = true;
+    this.initialContent = this.sanitizer.bypassSecurityTrustHtml(this.editingPage.content || '');
+    this.initialSidebarContent = this.sanitizer.bypassSecurityTrustHtml(this.editingPage.sidebarContent || '');
     this.showSettings = false;
+    this.persistEditState();
   }
 
-  cancelEdit(): void {
+  async cancelEdit(): Promise<void> {
     if (!this.saved) {
-      if (!confirm('Discard unsaved changes?')) return;
+      const confirm = await this.openCustomDialog({
+        title: 'Unsaved Changes',
+        message: 'You have unsaved changes. Are you sure you want to discard them?',
+        type: 'confirm'
+      });
+      if (!confirm) return;
     }
     this.editingPage = null;
     this.showSettings = false;
+    this.clearEditState();
+  }
+
+  openCustomDialog(config: Partial<typeof this.dialogConfig>): Promise<any> {
+    return new Promise((resolve) => {
+      this.dialogConfig = {
+        show: true,
+        title: config.title || 'Notification',
+        message: config.message || '',
+        type: config.type || 'alert',
+        inputLabel: config.inputLabel || '',
+        confirmText: config.confirmText || '',
+        cancelText: config.cancelText || '',
+        value: config.value || '',
+        resolve: resolve
+      };
+      this.cdr.detectChanges();
+    });
+  }
+
+  closeDialog(result: boolean): void {
+    const value = this.dialogConfig.value;
+    const resolve = this.dialogConfig.resolve;
+    this.dialogConfig.show = false;
+    this.cdr.detectChanges();
+    
+    if (this.dialogConfig.type === 'prompt') {
+      resolve(result ? value : null);
+    } else {
+      resolve(result);
+    }
   }
 
   onTitleBlur(event: any): void {
@@ -449,6 +730,21 @@ export class ManagePagesComponent implements OnInit {
   }
 
   exec(command: string, value: any = null): void {
+    const selection = window.getSelection();
+    const isInside = selection && selection.rangeCount > 0 && (
+        this.contentArea.nativeElement.contains(selection.anchorNode) || 
+        (this.sidebarArea && this.sidebarArea.nativeElement.contains(selection.anchorNode))
+    );
+
+    if (!isInside) {
+        this.contentArea.nativeElement.focus();
+        const range = document.createRange();
+        range.selectNodeContents(this.contentArea.nativeElement);
+        range.collapse(false);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+    }
+
     document.execCommand(command, false, value);
     this.markUnsaved();
   }
@@ -462,31 +758,191 @@ export class ManagePagesComponent implements OnInit {
     this.exec('foreColor', this.activeColor);
   }
 
-  insertLink(): void {
+  onHeroColorChange(event: any): void {
+    if (this.editingPage) {
+      this.editingPage.backgroundColor = event.target.value;
+      this.markUnsaved();
+    }
+  }
+
+  async onContentClick(event: any): Promise<void> {
+    const target = event.target as HTMLElement;
+
+    // Handle Block Deletion
+    if (target.classList.contains('delete-block-btn') || target.parentElement?.classList.contains('delete-block-btn')) {
+      const block = target.closest('.removable-block');
+      if (block) {
+        const confirm = await this.openCustomDialog({
+            title: 'Delete Block',
+            message: 'Are you sure you want to remove this content block?',
+            type: 'confirm'
+        });
+        if (confirm) {
+          block.remove();
+          // Trigger update
+          if (this.contentArea) this.onContentInput({ target: { innerHTML: this.contentArea.nativeElement.innerHTML } });
+        }
+      }
+      return;
+    }
+
+    if (target.tagName === 'IMG') {
+      this.selectedImageElement = target as HTMLImageElement;
+      const change = await this.openCustomDialog({
+          title: 'Update Image',
+          message: 'Do you want to replace this image?',
+          type: 'confirm'
+      });
+      if (change) {
+        this.triggerEditorFileUpload('image');
+      }
+    } else {
+      this.selectedImageElement = null;
+    }
+  }
+
+  prepareBlockInsertion(): void {
+    let selection = window.getSelection();
+    
+    // If no selection or selection is outside editor, focus end of main area
+    const isInside = selection && selection.rangeCount > 0 && (
+        this.contentArea.nativeElement.contains(selection.anchorNode) || 
+        (this.sidebarArea && this.sidebarArea.nativeElement.contains(selection.anchorNode))
+    );
+
+    if (!isInside) {
+        this.contentArea.nativeElement.focus();
+        const range = document.createRange();
+        range.selectNodeContents(this.contentArea.nativeElement);
+        range.collapse(false);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        selection = window.getSelection();
+    }
+
+    if (!selection || selection.rangeCount === 0) return;
+
+    let node = selection.anchorNode;
+    // Traverse up to find if we are inside a removable-block
+    while (node && node !== this.contentArea.nativeElement) {
+      if (node.nodeType === 1 && (node as HTMLElement).classList.contains('removable-block')) {
+        // Found it! Move cursor after this block
+        const range = document.createRange();
+        range.setStartAfter(node);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        return;
+      }
+      node = node.parentNode;
+    }
+  }
+
+  async insertLink(): Promise<void> {
     const selection = window.getSelection();
     let defaultUrl = 'https://';
     if (selection && selection.toString().startsWith('http')) {
       defaultUrl = selection.toString();
     }
 
-    const url = prompt('Enter Destination URL:', defaultUrl);
+    const url = await this.openCustomDialog({
+        title: 'Insert Link',
+        message: 'Enter the destination URL for the selected text.',
+        type: 'prompt',
+        inputLabel: 'URL'
+    });
     if (url) {
       this.exec('createLink', url);
     }
   }
 
   insertImage(): void {
-    const url = prompt('Enter Image URL:');
-    if (url) this.exec('insertImage', url);
+    this.triggerEditorFileUpload('image');
+  }
+
+  async insertDocumentLink(): Promise<void> {
+    const typeSelection = await this.openCustomDialog({
+        title: 'Select File Type',
+        message: 'Are you uploading a PDF or an Image for this link?',
+        type: 'confirm',
+        confirmText: 'PDF Document',
+        cancelText: 'Image File'
+    });
+    
+    // In our system, 'confirm' returns true (PDF) and 'cancel' returns false (Image)
+    const type = typeSelection ? 'pdf' : 'image';
+
+    this.isDocumentLinkMode = true;
+    this.triggerEditorFileUpload(type);
+  }
+
+  insertSideBySide(align: 'left' | 'right'): void {
+    this.prepareBlockInsertion();
+    const html = `
+      <div class="removable-block mb-3">
+        <div class="delete-block-btn" contenteditable="false" title="Remove Block">×</div>
+        <div class="side-by-side-row ${align === 'right' ? 'flex-row-reverse' : ''}">
+          <div class="side-image">
+             <img src="assets/images/college-bg.jpg" alt="Description">
+          </div>
+          <div class="side-content">
+             <h2 class="fw-bold">Section Heading</h2>
+             <p>This is a side-by-side content block. You can replace this image by selecting it and using the upload tool, or just edit this text directly.</p>
+          </div>
+        </div>
+      </div>
+      <p class="mt-3"><br></p>
+    `;
+    this.exec('insertHTML', html);
+  }
+
+  insertUnderlinedHeading(): void {
+    this.prepareBlockInsertion();
+    const html = `
+      <div class="removable-block mb-3">
+         <div class="delete-block-btn" contenteditable="false" title="Remove Block">×</div>
+         <div class="underlined-heading">
+           <h2>YOUR HEADING HERE</h2>
+           <div class="accent-line"></div>
+         </div>
+      </div>
+      <p class="mt-3"><br></p>
+    `;
+    this.exec('insertHTML', html);
+  }
+
+  async insertThemedButton(): Promise<void> {
+    const text = await this.openCustomDialog({ title: 'Button Text', message: 'Enter the text to display on the button.', type: 'prompt' });
+    if (!text) return;
+    const url = await this.openCustomDialog({ title: 'Button Link', message: 'Enter the URL the button should point to.', type: 'prompt' });
+    if (url) {
+      const html = `<a href="${url}" class="themed-btn">${text}</a> &nbsp;`;
+      this.exec('insertHTML', html);
+    }
   }
 
   addBlock(): void {
-    const block = '<div class="my-4"><p>New content section added. Edit me!</p></div>';
+    this.prepareBlockInsertion();
+    const block = `
+      <div class="removable-block mb-3">
+         <div class="delete-block-btn" contenteditable="false" title="Remove Block">×</div>
+         <div class="my-4 p-4 bg-light border rounded">
+            <h4 class="fw-bold mb-2">New Section</h4>
+            <p>New paragraph block added. Click here to edit this text.</p>
+         </div>
+      </div>
+      <p class="mt-3"><br></p>
+    `;
     this.exec('insertHTML', block);
   }
 
-  changeHeroImage(): void {
-    const url = prompt('Enter Hero Background Image URL:', this.editingPage?.backgroundImageUrl || '');
+  async changeHeroImage(): Promise<void> {
+    const url = await this.openCustomDialog({
+        title: 'Hero Image',
+        message: 'Enter the URL for the hero background image.',
+        type: 'prompt',
+        value: this.editingPage?.backgroundImageUrl || ''
+    });
     if (url !== null && this.editingPage) {
       this.editingPage.backgroundImageUrl = url;
       this.markUnsaved();
@@ -495,6 +951,7 @@ export class ManagePagesComponent implements OnInit {
 
   savePage(): void {
     if (!this.editingPage) return;
+    this.persistEditState(); 
     this.isLoading = true;
 
     const request = this.editingPage.id
@@ -506,11 +963,12 @@ export class ManagePagesComponent implements OnInit {
         if (!this.editingPage?.id) this.editingPage!.id = res.id;
         this.saved = true;
         this.isLoading = false;
+        this.clearEditState();
         this.toastService.success('Page saved successfully!');
         this.loadPages();
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: (err :any)  => {
         this.isLoading = false;
         this.toastService.error('Error saving page. Please check if the slug is unique.');
         console.error(err);
@@ -518,31 +976,122 @@ export class ManagePagesComponent implements OnInit {
     });
   }
 
-  triggerEditorFileUpload(): void {
-    this.editorFileUpload.nativeElement.click();
+  triggerEditorFileUpload(type: 'image' | 'pdf' | 'gallery' = 'image'): void {
+    this.isGalleryMode = type === 'gallery';
+    if (type === 'pdf') {
+      this.pdfUpload.nativeElement.click();
+    } else {
+      this.editorFileUpload.nativeElement.click();
+    }
   }
 
   onEditorFileSelected(event: any): void {
+    const files: FileList = event.target.files;
+    if (files && files.length > 0) {
+      this.isLoading = true;
+      
+      const uploadTasks = Array.from(files).map(file => this.fileService.uploadFile(file).toPromise());
+      
+      Promise.all(uploadTasks).then(async (results: any[]) => {
+        if (this.isDocumentLinkMode) {
+          const res = results[0];
+          const text = await this.openCustomDialog({
+            title: 'Link Text',
+            message: 'Enter the text to display for this link:',
+            type: 'prompt',
+            value: files[0].name
+          });
+          if (text) {
+            this.exec('insertHTML', `<a href="${res.url}" target="_blank">${text}</a>`);
+          }
+        } else if (this.selectedImageElement) {
+          this.selectedImageElement.src = results[0].url;
+          this.selectedImageElement = null;
+          if (this.contentArea) this.onContentInput({ target: { innerHTML: this.contentArea.nativeElement.innerHTML } });
+        } else {
+          // Insert images wrapped in removable blocks one by one
+          results.forEach(res => {
+            const html = `
+              <div class="removable-block mb-3">
+                <div class="delete-block-btn" contenteditable="false" title="Remove Block">×</div>
+                <img src="${res.url}" alt="Image">
+              </div>
+              <p><br></p>
+            `;
+            this.exec('insertHTML', html);
+          });
+        }
+        
+        this.isLoading = false;
+        this.isDocumentLinkMode = false;
+        this.toastService.success('Files processed successfully!');
+        event.target.value = ''; // Reset input to allow re-uploading same file
+        this.cdr.detectChanges();
+      }).catch(err => {
+        this.isLoading = false;
+        this.isDocumentLinkMode = false;
+        this.toastService.error('Failed to upload one or more files');
+        event.target.value = ''; // Reset input even on error
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
+  onPdfSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
       this.isLoading = true;
       this.fileService.uploadFile(file).subscribe({
-        next: (res: any) => {
-          this.exec('insertImage', res.url);
+        next: async (res: any) => {
+          if (this.isDocumentLinkMode) {
+            const text = await this.openCustomDialog({
+                title: 'Link Text',
+                message: 'Enter the text to display for this link:',
+                type: 'prompt',
+                value: file.name
+            });
+            if (text) {
+              this.exec('insertHTML', `<a href="${res.url}" target="_blank">${text}</a>`);
+            }
+            this.isDocumentLinkMode = false;
+          } else {
+            this.prepareBlockInsertion();
+            const iframeHtml = `
+              <div class="removable-block mb-3">
+                <div class="delete-block-btn" contenteditable="false" title="Remove Block">×</div>
+                <div class="pdf-viewer-card-dynamic my-4">
+                  <div class="pdf-container-embedded">
+                    <iframe src="${res.url}" type="application/pdf" width="100%" height="750px" frameborder="0"></iframe>
+                  </div>
+                </div>
+              </div>
+              <p class="mt-3"><br></p>
+            `;
+            this.exec('insertHTML', iframeHtml);
+          }
           this.isLoading = false;
-          this.toastService.success('Image uploaded and inserted!');
+          this.toastService.success('PDF uploaded successfully!');
+          event.target.value = ''; // Reset input
+          this.cdr.detectChanges();
         },
         error: (err) => {
           this.isLoading = false;
-          this.toastService.error('Failed to upload image');
+          this.isDocumentLinkMode = false;
+          this.toastService.error('Failed to upload PDF');
+          event.target.value = ''; // Reset input
+          this.cdr.detectChanges();
         }
       });
     }
   }
 
   deletePage(page: Page): void {
-    if (confirm(`Are you sure you want to permanently delete "${page.title}"?`)) {
-      if (page.id) {
+    this.openCustomDialog({
+      title: 'Delete Page',
+      message: `Are you sure you want to permanently delete "${page.title}"?`,
+      type: 'confirm'
+    }).then((confirm) => {
+      if (confirm && page.id) {
         this.pageService.deletePage(page.id).subscribe({
           next: () => {
             this.toastService.success('Page deleted successfully');
@@ -551,6 +1100,6 @@ export class ManagePagesComponent implements OnInit {
           error: () => this.toastService.error('Failed to delete page')
         });
       }
-    }
+    });
   }
 }

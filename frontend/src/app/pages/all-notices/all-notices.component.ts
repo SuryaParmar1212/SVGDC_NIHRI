@@ -318,10 +318,8 @@ export class AllNoticesComponent implements OnInit {
     this.isLoading = true;
     this.announcementService.getAll().subscribe({
       next: (data: any) => {
-        console.log('Raw All Notices Data:', data);
         if (Array.isArray(data)) {
           this.noticesList = data.filter((notice: any) => notice.isActive);
-          console.log('Filtered Active Notices:', this.noticesList);
         } else {
           console.error('Expected array for notices but got:', data);
           this.noticesList = [];

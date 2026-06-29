@@ -294,12 +294,9 @@ export class AllNewsComponent implements OnInit {
     this.isLoading = true;
     this.newsService.getAll().subscribe({
       next: (data: any) => {
-        console.log('Raw All News Data:', data);
         if (Array.isArray(data)) {
           this.newsList = data.filter((news: News) => news.isActive);
-          console.log('Filtered Active News:', this.newsList);
         } else {
-          console.error('Expected array for news but got:', data);
           this.newsList = [];
         }
         this.isLoading = false;

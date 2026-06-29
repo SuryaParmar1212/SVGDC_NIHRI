@@ -14,7 +14,7 @@
           <a href="#" class="text-white">Student Login</a>
           <a href="#" class="text-white">Staff Login</a>
           <a href="#" class="text-white">Library</a>
-          <a href="#" class="text-white">Contact Us</a>
+          <a routerLink="/contact" class="text-white">Contact Us</a>
         </div>
       </div>
     </div>
@@ -65,7 +65,7 @@
         <!-- Default Home Link -->
         <li class="nav-item">
           <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-            <i class="bi bi-house-door-fill me-1" style="font-size: large;"></i> 
+            <i class="bi bi-house-door-fill me-1" style="font-size: large;"></i>
           </a>
         </li>
 
@@ -80,35 +80,57 @@
 
 <ng-template #menuNode let-item let-isRoot="isRoot">
   <!-- Top Level Item -->
-  <li *ngIf="isRoot" class="nav-item" [class.dropdown]="item.children && item.children.length > 0" >
-    <a class="nav-link" [class.dropdown-toggle]="item.children && item.children.length > 0" [routerLink]="item.link"
-      routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" [id]="'nav-' + item.id">
-      <i *ngIf="item.icon" [class]="item.icon" class="me-1" style="font-size: large;"></i> {{ item.title }}
-    </a>
+  <li *ngIf="isRoot" class="nav-item" [class.dropdown]="item.children && item.children.length > 0">
+    <ng-container *ngIf="item.link; else noLinkRoot">
+      <a class="nav-link" [class.dropdown-toggle]="item.children && item.children.length > 0" [routerLink]="item.link"
+        routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" [id]="'nav-' + item.id">
+        <i *ngIf="item.icon" [class]="item.icon" class="me-1" style="font-size: large;"></i> {{ item.title }}
+      </a>
+    </ng-container>
+    <ng-template #noLinkRoot>
+      <a class="nav-link" [class.dropdown-toggle]="item.children && item.children.length > 0" [id]="'nav-' + item.id"
+        style="cursor: pointer;">
+        <i *ngIf="item.icon" [class]="item.icon" class="me-1" style="font-size: large;"></i> {{ item.title }}
+      </a>
+    </ng-template>
 
     <!-- Render Dropdown if it has children -->
     <ul class="dropdown-menu animate-fade" *ngIf="item.children && item.children.length > 0">
       <ng-container *ngFor="let child of item.children">
-        <li class="dropdown-submenu-container">
-          <a class="dropdown-item" [routerLink]="child.link" routerLinkActive="active"
-            [class.has-children]="child.children?.length">
-            <span class="d-flex align-items-center " style="font-size: large;">
-              <i *ngIf="child.icon" [class]="child.icon" class="me-2 opacity-50"></i>
-              {{ child.title }}
-            </span>
-            <i *ngIf="child.children?.length" class="bi bi-chevron-right small opacity-50"></i>
-          </a>
-
-          <!-- Nested Dropdown (Optional support for multi-level) -->
-          <ul class="dropdown-menu submenu" *ngIf="child.children && child.children.length > 0">
-            <li *ngFor="let gchild of child.children">
-              <a class="dropdown-item" [routerLink]="gchild.link">{{ gchild.title }}</a>
-            </li>
-          </ul>
-        </li>
+        <ng-container *ngTemplateOutlet="subMenuTemplate; context:{ $implicit: child }"></ng-container>
       </ng-container>
     </ul>
   </li>
+</ng-template>
 
-  <!-- Non-Root Item (Child) Logic implicitly handled in case 2 above for simplicity -->
+<!-- Submenu Template (Recursive) -->
+<ng-template #subMenuTemplate let-item>
+  <li class="dropdown-submenu" [class.has-children]="item.children && item.children.length > 0">
+    <ng-container *ngIf="item.link; else noLinkSub">
+      <a class="dropdown-item" [routerLink]="item.link" routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: true}">
+        <span class="d-flex align-items-center">
+          <i *ngIf="item.icon" [class]="item.icon" class="me-2 opacity-50"></i>
+          {{ item.title }}
+        </span>
+        <i *ngIf="item.children && item.children.length > 0" class="bi bi-chevron-right small opacity-50 ms-auto"></i>
+      </a>
+    </ng-container>
+    <ng-template #noLinkSub>
+      <div class="dropdown-item no-link">
+        <span class="d-flex align-items-center">
+          <i *ngIf="item.icon" [class]="item.icon" class="me-2 opacity-50"></i>
+          {{ item.title }}
+        </span>
+        <i *ngIf="item.children && item.children.length > 0" class="bi bi-chevron-right small opacity-50 ms-auto"></i>
+      </div>
+    </ng-template>
+
+    <!-- Recursive Call for nested children -->
+    <ul class="dropdown-menu submenu" *ngIf="item.children && item.children.length > 0">
+      <ng-container *ngFor="let child of item.children">
+        <ng-container *ngTemplateOutlet="subMenuTemplate; context:{ $implicit: child }"></ng-container>
+      </ng-container>
+    </ul>
+  </li>
 </ng-template>

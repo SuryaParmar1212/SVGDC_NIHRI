@@ -32,7 +32,7 @@ import { ToastService } from '../../../services/toast.service';
                       <div class="card-header bg-light border-0 p-4">
                           <h6 class="mb-0 fw-bold">Menu Architecture</h6>
                       </div>
-                      <div class="card-body p-0">
+                      <div class="card-body p-0 " style="max-height:60vh; overflow-y:scroll;">
                           <div class="builder-list">
                               <ng-container *ngFor="let item of navigationTree">
                                   <ng-container *ngTemplateOutlet="navItemRowInteractive; context:{ $implicit: item, depth: 0 }"></ng-container>
@@ -129,31 +129,7 @@ import { ToastService } from '../../../services/toast.service';
               </div>
           </div>
               <!-- Live Preview Card -->
-          <div class="card mt-3 shadow-sm border-0 menu-builder-preview">
-              <div class="card-header bg-white border-bottom p-4">
-                  <div class="d-flex align-items-center justify-content-between">
-                     <h6 class="text-uppercase small fw-bold text-primary mb-0">Live Header Preview</h6>
-                     <span class="badge bg-light text-dark rounded-pill border">Auto-synced</span>
-                  </div>
-              </div>
-              <div class="card-body p-0">
-                  <div class="modern-preview-nav px-4 py-3">
-                      <div class="container d-flex align-items-center gap-5">
-                          <div class="preview-logo">
-                             <img src="assets/images/logo.png" height="40" class="me-2 opacity-50" onerror="this.style.display='none'">
-                             <span class="fw-bold fs-5">COLLEGE PORTAL</span>
-                          </div>
-                          <div class="d-flex gap-4">
-                              <div class="preview-menu-item" *ngFor="let item of navigationTree" [class.has-children]="item.children?.length">
-                                  <i *ngIf="item.icon" [class]="item.icon" class="me-1 opacity-75"></i>
-                                  {{ item.title }}
-                                  <i *ngIf="item.children?.length" class="bi bi-chevron-down ms-1 extra-small opacity-50"></i>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
+        
         </div>
       </div>
     </div>
@@ -189,6 +165,27 @@ import { ToastService } from '../../../services/toast.service';
           </ng-container>
       </div>
     </ng-template>
+
+    <!-- Custom Dialog Modal -->
+    <div class="custom-dialog-overlay" *ngIf="dialogConfig.show" (click)="closeDialog(false)">
+      <div class="custom-dialog-card shadow-lg animate-in" (click)="$event.stopPropagation()">
+        <div class="dialog-header p-4 border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold">{{ dialogConfig.title }}</h5>
+          <button class="btn-close" (click)="closeDialog(false)"></button>
+        </div>
+        <div class="dialog-body p-4">
+          <p class="mb-0 text-muted">{{ dialogConfig.message }}</p>
+          <div class="mt-3" *ngIf="dialogConfig.type === 'prompt'">
+            <label class="small fw-bold text-uppercase opacity-50 mb-2 d-block">{{ dialogConfig.inputLabel }}</label>
+            <input type="text" class="form-control rounded-pill px-3" [(ngModel)]="dialogConfig.value" (keyup.enter)="closeDialog(true)" autofocus>
+          </div>
+        </div>
+        <div class="dialog-footer p-4 border-top d-flex justify-content-end gap-2">
+          <button class="btn btn-light px-4 rounded-pill" (click)="closeDialog(false)" *ngIf="dialogConfig.type !== 'alert'">{{ dialogConfig.cancelText || 'Cancel' }}</button>
+          <button class="btn btn-primary px-4 rounded-pill" (click)="closeDialog(true)">{{ dialogConfig.confirmText || (dialogConfig.type === 'confirm' ? 'Confirm' : 'OK') }}</button>
+        </div>
+      </div>
+    </div>
   `,
     styles: [`
     .fade-in { animation: fadeIn 0.4s ease-out; }
@@ -217,6 +214,15 @@ import { ToastService } from '../../../services/toast.service';
     @keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
     .extra-small { font-size: 0.7rem; }
+
+    /* Custom Dialog Styles */
+    .custom-dialog-overlay {
+        position: fixed; inset: 0; background: rgba(0,33,71,0.5); backdrop-filter: blur(8px);
+        z-index: 10001; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .custom-dialog-card {
+        background: white; border-radius: 24px; width: 100%; max-width: 450px; overflow: hidden;
+    }
   `]
 })
 export class ManageNavigationComponent implements OnInit {
@@ -225,6 +231,19 @@ export class ManageNavigationComponent implements OnInit {
     pages: Page[] = [];
     editingItem: NavigationItem | null = null;
     linkType: 'page' | 'custom' = 'custom';
+
+ 
+    dialogConfig = {
+      show: false,
+      title: '',
+      message: '',
+      type: 'alert' as 'alert' | 'confirm' | 'prompt',
+      inputLabel: '',
+      confirmText: '',
+      cancelText: '',
+      value: '',
+      resolve: (val: any) => {}
+    };
 
     constructor(
         private navService: NavigationService,
@@ -309,22 +328,51 @@ export class ManageNavigationComponent implements OnInit {
                 this.toastService.success('Navigation updated successfully!');
                 this.refresh();
                 this.editingItem = null;
+                this.cdr.detectChanges();
             },
             error: () => this.toastService.error('Failed to update navigation')
         });
     }
 
-    deleteItem(item: NavigationItem): void {
-        if (confirm(`Are you sure you want to delete "${item.title}"? All sub-items will also be deleted.`)) {
-            if (item.id) {
-                this.navService.deleteNavigationItem(item.id).subscribe({
-                    next: () => {
-                        this.toastService.success('Menu item deleted');
-                        this.refresh();
-                    },
-                    error: () => this.toastService.error('Failed to delete item')
-                });
-            }
+    openCustomDialog(config: Partial<typeof this.dialogConfig>): Promise<any> {
+      return new Promise((resolve) => {
+        this.dialogConfig = {
+          show: true,
+          title: config.title || 'Notification',
+          message: config.message || '',
+          type: config.type || 'alert',
+          inputLabel: config.inputLabel || '',
+          confirmText: config.confirmText || '',
+          cancelText: config.cancelText || '',
+          value: config.value || '',
+          resolve: resolve
+        };
+        this.cdr.detectChanges();
+      });
+    }
+
+    closeDialog(result: boolean): void {
+      const value = this.dialogConfig.type === 'prompt' ? (result ? this.dialogConfig.value : null) : result;
+      this.dialogConfig.show = false;
+      this.dialogConfig.resolve(value);
+      this.cdr.detectChanges();
+    }
+
+    async deleteItem(item: NavigationItem): Promise<void> {
+        const confirm = await this.openCustomDialog({
+            title: 'Delete Menu Item',
+            message: `Are you sure you want to delete "${item.title}"? All sub-items will also be deleted.`,
+            type: 'confirm'
+        });
+
+        if (confirm && item.id) {
+            this.navService.deleteNavigationItem(item.id).subscribe({
+                next: () => {
+                    this.toastService.success('Menu item deleted');
+                    this.refresh();
+                },
+                error: () => this.toastService.error('Failed to delete item')
+            });
         }
     }
 }

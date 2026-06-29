@@ -23,6 +23,7 @@ export const routes: Routes = [
     { path: 'nss', component: NSSComponent },
     { path: 'ncc', component: NSSComponent }, // Using same component for NCC
     { path: 'principal-message', component: PrincipalMessageComponent },
+    { path: 'contact', loadComponent: () => import('./pages/contact/contact.component').then(m => m.ContactUsComponent) },
     { path: ':slug', loadComponent: () => import('./pages/dynamic-page/dynamic-page.component').then(m => m.DynamicPageComponent) },
     { path: '**', redirectTo: '' }
 ];

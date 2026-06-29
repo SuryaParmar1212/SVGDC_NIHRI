@@ -11,6 +11,7 @@ export interface Page {
     sidebarContent?: string;
     layoutType?: string;
     backgroundImageUrl?: string;
+    backgroundColor?: string;
     metaDescription?: string;
     isPublished: boolean;
     createdDate?: Date;

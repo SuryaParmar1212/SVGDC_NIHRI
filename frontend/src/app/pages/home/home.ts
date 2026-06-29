@@ -42,7 +42,6 @@ export class Home implements OnInit {
     this.isLoadingNews = true;
     this.newsService.getAll().subscribe({
       next: (data: any) => {
-        console.log('Raw News Data:', data);
         if (Array.isArray(data)) {
           this.newsList = data.slice(0, 6);
         } else {
@@ -64,7 +63,6 @@ export class Home implements OnInit {
     this.isLoadingAnnouncements = true;
     this.announcementService.getAll().subscribe({
       next: (data: any) => {
-        console.log('Raw Announcement Data:', data);
         if (Array.isArray(data)) {
           this.announcementsList = data.filter((a: any) => a.isActive).slice(0, 5);
         } else {

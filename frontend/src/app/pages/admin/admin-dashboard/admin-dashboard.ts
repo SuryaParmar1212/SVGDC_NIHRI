@@ -95,11 +95,13 @@ export class AdminDashboard implements OnInit {
     }
 
     ngOnInit(): void {
-        // Only load data for the initial active tab
+        const savedTab = localStorage.getItem('admin_active_tab');
+        if (savedTab) {
+            this.activeTab = savedTab as any;
+        }
         this.loadTabData(this.activeTab);
     }
 
-    // Generic File Handler
     onFileSelected(event: any, target: 'news' | 'announcement' | 'gallery' | 'carousel' | 'attachment'): void {
         const file: File = event.target.files[0];
         if (file) {
@@ -114,6 +116,7 @@ export class AdminDashboard implements OnInit {
             } else if (target === 'carousel') {
                 this.newCarouselItem.selectedFile = file;
             }
+            event.target.value = ''; // Reset input to allow re-uploading same file
         }
     }
 
@@ -124,11 +127,9 @@ export class AdminDashboard implements OnInit {
         this.isNewsLoading = true;
         this.newsService.getAll().subscribe({
             next: (data: any) => {
-                console.log('Raw News Data:', data);
                 if (Array.isArray(data)) {
                     this.newsList = data;
                 } else {
-                    console.error('Expected array for news but got:', data);
                     this.newsList = [];
                 }
                 this.newsLoaded = true;
@@ -136,7 +137,6 @@ export class AdminDashboard implements OnInit {
                 this.cdr.detectChanges();
             },
             error: (error: any) => {
-                console.error('Error loading news:', error);
                 this.toastService.error('Failed to load news');
                 this.isNewsLoading = false;
                 this.cdr.detectChanges();
@@ -252,7 +252,6 @@ export class AdminDashboard implements OnInit {
         this.isAnnouncementsLoading = true;
         this.announcementService.getAll().subscribe({
             next: (data: any) => {
-                console.log('Raw Announcements Data:', data);
                 if (Array.isArray(data)) {
                     this.announcementsList = data;
                 } else {
@@ -393,7 +392,6 @@ export class AdminDashboard implements OnInit {
         this.isGalleryLoading = true;
         this.galleryService.getAll().subscribe({
             next: (data: any) => {
-                console.log('Raw Gallery Data:', data);
                 if (Array.isArray(data)) {
                     this.galleryList = data;
                 } else {
@@ -512,7 +510,6 @@ export class AdminDashboard implements OnInit {
         this.isCarouselLoading = true;
         this.carouselService.getAll().subscribe({
             next: (data: any) => {
-                console.log('Raw Carousel Data:', data);
                 if (Array.isArray(data)) {
                     this.carouselList = data;
                 } else {
@@ -626,10 +623,9 @@ export class AdminDashboard implements OnInit {
         this.editingCarouselItem = null;
     }
 
-    // Utility Methods
-    // Utility Methods
     setActiveTab(tab: string): void {
         this.activeTab = tab as any;
+        localStorage.setItem('admin_active_tab', tab);
         this.loadTabData(tab as any);
         this.cdr.detectChanges();
     }
@@ -766,8 +762,10 @@ export class AdminDashboard implements OnInit {
                     this.toastService.error('Failed to upload PDF');
                 }
             });
+            event.target.value = ''; // Reset input
         } else {
             this.toastService.error('Please select a valid PDF file');
+            event.target.value = ''; // Reset input
         }
     }
 }
